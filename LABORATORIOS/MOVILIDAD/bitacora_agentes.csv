@@ -1,0 +1,4 @@
+hora,presion,racha_presion_alta,accion_simple,motivo_simple,accion_modelo,motivo_modelo
+6,0.95,1,RECOMENDAR_REFUERZO,presion=0.95 >= umbral=0.85,NO_REFORZAR,racha_presion_alta=1 (aun no persiste la presion alta).
+7,1.75,2,RECOMENDAR_REFUERZO,presion=1.75 >= umbral=0.85,RECOMENDAR_REFUERZO,racha_presion_alta=2 (2 o mas horas consecutivas con presion alta).
+8,3.25,3,RECOMENDAR_REFUERZO,presion=3.25 >= umbral=0.85,RECOMENDAR_REFUERZO,racha_presion_alta=3 (2 o mas horas consecutivas con presion alta).
