@@ -168,6 +168,20 @@ Responder brevemente:
 4. ¿Qué representa `tasa_otras_simulada` y qué no permite afirmar?
 5. ¿Por qué `resultado_h_mas_1.csv` no puede formar parte de la percepción?
 
+## Respuestas 
+1. Ambos agentes producen la misma acción cuando:
+  - La percepción es inválida: ambos devuelven ABSTENERSE.
+  - La presión es baja (presion < 0.85): ambos devuelven NO_REFORZAR.
+  - Existen dos o más horas consecutivas con presión alta: ambos devuelven RECOMENDAR_REFUERZO.
+
+2. Reaccionan de forma diferente durante la primera hora con presión alta (presion >= 0.85). El   agente reactivo simple recomienda refuerzo inmediatamente, mientras que el agente basado en modelo  devuelve NO_REFORZAR porque todavía no se alcanzaron dos horas consecutivas de presión alta.
+
+3. El segundo agente está basado en modelo porque mantiene un estado interno que resume la historia observada. En este caso, recuerda la racha de horas consecutivas con presión alta, la presión anterior y la última acción. No necesita planificar: utiliza su memoria para representar una parte del estado del entorno y aplicar reglas sobre ella.
+
+4. tasa_otras_simulada representa la proporción sintética de viajes asignados a otras empresas. Se genera mediante una fórmula y un componente aleatorio para el ejercicio. No permite afirmar cuál es la participación real de mercado de otras empresas, cuántos vehículos poseen ni cómo se comportan realmente, porque esa información no proviene de datos observados.
+
+5. resultado_h_mas_1.csv contiene información correspondiente a la hora futura h+1. Al tomar una decisión al finalizar la hora h, esa información todavía no debería estar disponible. Utilizarla produciría una fuga temporal: el agente decidiría con conocimiento del futuro. Por eso solamente puede usarse después, para evaluar la recomendación realizada.
+
 ## Pruebas obligatorias
 
 Implementar al menos estos tres casos:
