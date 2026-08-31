@@ -1,0 +1,4 @@
+hora,presion,racha_presion_alta,accion_simple,motivo_simple,accion_modelo,motivo_modelo
+6,0.95,1,RECOMENDAR_REFUERZO,Presión alta detectada en hora actual (0.95 >= 0.85),NO_REFORZAR,"Presión alta no sostenida (racha: 1 hora/s, presion: 0.95)"
+7,1.75,2,RECOMENDAR_REFUERZO,Presión alta detectada en hora actual (1.75 >= 0.85),RECOMENDAR_REFUERZO,Presión alta sostenida por 2 horas consecutivas
+8,3.25,3,RECOMENDAR_REFUERZO,Presión alta detectada en hora actual (3.25 >= 0.85),RECOMENDAR_REFUERZO,Presión alta sostenida por 3 horas consecutivas
