@@ -61,8 +61,8 @@ El programa crea dos archivos:
 
 | Archivo | Uso permitido |
 |---|---|
-| `escenario_agente/percepciones.csv` | Entrada de los agentes; contiene únicamente información hasta `h`. |
-| `escenario_agente/resultado_h_mas_1.csv` | Evaluación posterior; no puede utilizarse para decidir. |
+| `escenario_agente/percepciones.csv` | Entrada de los agentes; contiene únicamente información hasta `h`.Este es el que tiene que usar el agente par timar desciciones |
+| `escenario_agente/resultado_h_mas_1.csv` | Evaluación posterior; no puede utilizarse para decidir. Que esta pasando ahora, pista de que hacer|
 
 ## Percepción
 
@@ -111,7 +111,7 @@ tupla `(accion, motivo)`.
 | `presion >= 0.85` | `RECOMENDAR_REFUERZO` |
 | `presion < 0.85` | `NO_REFORZAR` |
 
-No está permitido utilizar variables globales mutables, observaciones
+No está permitido utilizar variables globales mutables, o2bservaciones
 anteriores ni el archivo de evaluación futura.
 
 ## Parte 2: agente reactivo basado en modelo
