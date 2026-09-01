@@ -53,11 +53,21 @@ def cargar_centros_zonas(zonas_url: str = ZONAS_URL) -> pd.DataFrame:
             "Instale las dependencias con: pip install -r requirements.txt"
         ) from exc
 
-    with tempfile.NamedTemporaryFile(suffix=".zip") as archivo_zip:
-        urllib.request.urlretrieve(zonas_url, archivo_zip.name)
+    import os
+    with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as archivo_zip:
+        archivo_zip_name = archivo_zip.name
+        
+    try:
+        urllib.request.urlretrieve(zonas_url, archivo_zip_name)
         zonas = gpd.read_file(
-            f"zip://{archivo_zip.name}!taxi_zones/taxi_zones.shp"
+            f"zip://{archivo_zip_name}!taxi_zones/taxi_zones.shp"
         )
+    finally:
+        if os.path.exists(archivo_zip_name):
+            try:
+                os.remove(archivo_zip_name)
+            except:
+                pass
 
     if zonas.crs is None:
         raise ValueError("Las geometrías de las zonas TLC no tienen un CRS definido")
