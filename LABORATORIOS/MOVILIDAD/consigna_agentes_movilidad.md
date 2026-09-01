@@ -48,7 +48,7 @@ Generar un escenario reproducible para la zona TLC `161`, tomando la decisión
 al finalizar la hora 8 y suponiendo 20 taxis de X:
 
 ```bash
-python MATERIAL_CURSOS/LABORATORIOS/MOVILIDAD/simulador_entorno_agente.py \
+python simulador_entorno_agente.py \
   --zona 161 \
   --hora 8 \
   --taxis-x 20 \
@@ -59,29 +59,29 @@ python MATERIAL_CURSOS/LABORATORIOS/MOVILIDAD/simulador_entorno_agente.py \
 
 El programa crea dos archivos:
 
-| Archivo | Uso permitido |
-|---|---|
-| `escenario_agente/percepciones.csv` | Entrada de los agentes; contiene únicamente información hasta `h`. |
-| `escenario_agente/resultado_h_mas_1.csv` | Evaluación posterior; no puede utilizarse para decidir. |
+| Archivo                                    | Uso permitido                                                         |
+| ------------------------------------------ | --------------------------------------------------------------------- |
+| `escenario_agente/percepciones.csv`      | Entrada de los agentes; contiene únicamente información hasta`h`. |
+| `escenario_agente/resultado_h_mas_1.csv` | Evaluación posterior; no puede utilizarse para decidir.              |
 
 ## Percepción
 
 Cada fila de `percepciones.csv` representa una observación horaria:
 
-| Campo | Significado |
-|---|---|
-| `zona_id` | Identificador TLC de la zona. |
-| `zona` | Nombre de la zona. |
-| `hora` | Hora cerrada que se está observando. |
-| `taxis_x` | Taxis de X disponibles al inicio de la hora. |
-| `demanda_total` | Viajes simulados con pickup en la zona. |
-| `tasa_otras_simulada` | Proporción sintética sorteada para otras empresas. |
-| `viajes_otras` | Viajes asignados a otras empresas. |
-| `demanda_x` | Viajes asignados a X. |
-| `capacidad_x` | Capacidad simplificada de la flota de X. |
-| `viajes_atendibles_x` | Viajes que X podría atender con esa capacidad. |
-| `demanda_no_cubierta_x` | Diferencia positiva entre demanda y capacidad. |
-| `presion` | Cociente entre `demanda_x` y `capacidad_x`. |
+| Campo                     | Significado                                          |
+| ------------------------- | ---------------------------------------------------- |
+| `zona_id`               | Identificador TLC de la zona.                        |
+| `zona`                  | Nombre de la zona.                                   |
+| `hora`                  | Hora cerrada que se está observando.                |
+| `taxis_x`               | Taxis de X disponibles al inicio de la hora.         |
+| `demanda_total`         | Viajes simulados con pickup en la zona.              |
+| `tasa_otras_simulada`   | Proporción sintética sorteada para otras empresas. |
+| `viajes_otras`          | Viajes asignados a otras empresas.                   |
+| `demanda_x`             | Viajes asignados a X.                                |
+| `capacidad_x`           | Capacidad simplificada de la flota de X.             |
+| `viajes_atendibles_x`   | Viajes que X podría atender con esa capacidad.      |
+| `demanda_no_cubierta_x` | Diferencia positiva entre demanda y capacidad.       |
+| `presion`               | Cociente entre`demanda_x` y `capacidad_x`.       |
 
 Para este trabajo se supone que cada taxi aporta una unidad de capacidad por
 hora. La flota se mantiene constante y una recomendación no ejecuta un
@@ -89,11 +89,11 @@ traslado.
 
 ## Acciones permitidas
 
-| Acción | Interpretación |
-|---|---|
-| `NO_REFORZAR` | La política no encuentra evidencia suficiente para recomendar más taxis. |
-| `RECOMENDAR_REFUERZO` | Se aconseja que una persona considere reforzar la zona en `h+1`. |
-| `ABSTENERSE` | La percepción es inválida o no permite aplicar la política con seguridad. |
+| Acción                 | Interpretación                                                              |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `NO_REFORZAR`         | La política no encuentra evidencia suficiente para recomendar más taxis.   |
+| `RECOMENDAR_REFUERZO` | Se aconseja que una persona considere reforzar la zona en`h+1`.            |
+| `ABSTENERSE`          | La percepción es inválida o no permite aplicar la política con seguridad. |
 
 El agente no elige la zona de origen de los taxis ni ejecuta el traslado.
 
@@ -105,11 +105,11 @@ Completar `decidir_reactivo_simple(percepcion)` en
 La función debe utilizar exclusivamente la percepción actual y devolver una
 tupla `(accion, motivo)`.
 
-| Condición | Acción |
-|---|---|
-| Faltan datos requeridos, existen valores inválidos o la capacidad es desconocida | `ABSTENERSE` |
-| `presion >= 0.85` | `RECOMENDAR_REFUERZO` |
-| `presion < 0.85` | `NO_REFORZAR` |
+| Condición                                                                        | Acción                 |
+| --------------------------------------------------------------------------------- | ----------------------- |
+| Faltan datos requeridos, existen valores inválidos o la capacidad es desconocida | `ABSTENERSE`          |
+| `presion >= 0.85`                                                               | `RECOMENDAR_REFUERZO` |
+| `presion < 0.85`                                                                | `NO_REFORZAR`         |
 
 No está permitido utilizar variables globales mutables, observaciones
 anteriores ni el archivo de evaluación futura.
@@ -135,11 +135,11 @@ La actualización debe incrementar `racha_presion_alta` cuando
 inválidos deben dejar el estado en una condición que produzca
 `ABSTENERSE`.
 
-| Estado actualizado | Acción |
-|---|---|
-| Percepción inválida | `ABSTENERSE` |
+| Estado actualizado                              | Acción                 |
+| ----------------------------------------------- | ----------------------- |
+| Percepción inválida                           | `ABSTENERSE`          |
 | Dos o más horas consecutivas con presión alta | `RECOMENDAR_REFUERZO` |
-| Cualquier otro estado válido | `NO_REFORZAR` |
+| Cualquier otro estado válido                   | `NO_REFORZAR`         |
 
 Este agente sigue siendo reactivo: actualiza un resumen de la historia y aplica
 reglas al estado actual. No genera sucesores, no busca caminos y no planifica
@@ -150,15 +150,15 @@ traslados.
 Completar `procesar_secuencia(percepciones)` para ejecutar ambos agentes en
 orden temporal. La salida debe contener como mínimo:
 
-| Campo | Contenido |
-|---|---|
-| `hora` | Hora observada. |
-| `presion` | Presión percibida. |
+| Campo                  | Contenido                                  |
+| ---------------------- | ------------------------------------------ |
+| `hora`               | Hora observada.                            |
+| `presion`            | Presión percibida.                        |
 | `racha_presion_alta` | Estado persistente después de actualizar. |
-| `accion_simple` | Acción del agente reactivo simple. |
-| `motivo_simple` | Justificación de la regla aplicada. |
-| `accion_modelo` | Acción del agente basado en modelo. |
-| `motivo_modelo` | Justificación basada en el estado. |
+| `accion_simple`      | Acción del agente reactivo simple.        |
+| `motivo_simple`      | Justificación de la regla aplicada.       |
+| `accion_modelo`      | Acción del agente basado en modelo.       |
+| `motivo_modelo`      | Justificación basada en el estado.        |
 
 Responder brevemente:
 
@@ -172,11 +172,11 @@ Responder brevemente:
 
 Implementar al menos estos tres casos:
 
-| Caso | Comprobación esperada |
-|---|---|
-| Presión baja | Ambos agentes devuelven `NO_REFORZAR`. |
-| Primera hora con presión alta | El simple recomienda refuerzo y el basado en modelo todavía no. |
-| Segunda hora consecutiva con presión alta | Ambos recomiendan refuerzo. |
+| Caso                                       | Comprobación esperada                                           |
+| ------------------------------------------ | ---------------------------------------------------------------- |
+| Presión baja                              | Ambos agentes devuelven`NO_REFORZAR`.                          |
+| Primera hora con presión alta             | El simple recomienda refuerzo y el basado en modelo todavía no. |
+| Segunda hora consecutiva con presión alta | Ambos recomiendan refuerzo.                                      |
 
 Agregar una prueba decisiva con dos historias distintas que terminen en la
 misma percepción. El agente reactivo simple debe producir la misma acción en
@@ -190,12 +190,12 @@ datos de `h+1`.
 
 La entrega debe identificar:
 
-| Elemento | Contenido esperado |
-|---|---|
-| Performance | Recomendaciones coherentes con las reglas, ausencia de fuga temporal, abstención ante datos inválidos y trazabilidad. |
+| Elemento    | Contenido esperado                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Performance | Recomendaciones coherentes con las reglas, ausencia de fuga temporal, abstención ante datos inválidos y trazabilidad.         |
 | Environment | Secuencia simulada zona-hora, demanda TLC transformada, flota sintética de X, otras empresas sintéticas y responsable humano. |
-| Actuators | Mensajes `NO_REFORZAR`, `RECOMENDAR_REFUERZO` y `ABSTENERSE`. |
-| Sensors | Lectura lógica de `percepciones.csv`; no es un sensor conectado en tiempo real. |
+| Actuators   | Mensajes`NO_REFORZAR`, `RECOMENDAR_REFUERZO` y `ABSTENERSE`.                                                              |
+| Sensors     | Lectura lógica de`percepciones.csv`; no es un sensor conectado en tiempo real.                                               |
 
 ## Entrega
 
@@ -206,13 +206,13 @@ La entrega debe identificar:
 
 ## Evaluación
 
-| Criterio | Puntaje |
-|---|---:|
-| Agente reactivo simple y validación de entradas | 2 |
-| Actualización correcta del estado interno | 2 |
-| Política del agente basado en modelo | 2 |
-| Pruebas, bitácora y demostración de dependencia histórica | 2 |
-| PEAS, causalidad temporal y discusión de limitaciones | 2 |
+| Criterio                                                     | Puntaje |
+| ------------------------------------------------------------ | ------: |
+| Agente reactivo simple y validación de entradas             |       2 |
+| Actualización correcta del estado interno                   |       2 |
+| Política del agente basado en modelo                        |       2 |
+| Pruebas, bitácora y demostración de dependencia histórica |       2 |
+| PEAS, causalidad temporal y discusión de limitaciones       |       2 |
 
 ## Limitaciones que deben reconocerse
 

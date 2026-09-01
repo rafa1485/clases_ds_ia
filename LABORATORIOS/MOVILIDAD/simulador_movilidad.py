@@ -53,10 +53,15 @@ def cargar_centros_zonas(zonas_url: str = ZONAS_URL) -> pd.DataFrame:
             "Instale las dependencias con: pip install -r requirements.txt"
         ) from exc
 
-    with tempfile.NamedTemporaryFile(suffix=".zip") as archivo_zip:
-        urllib.request.urlretrieve(zonas_url, archivo_zip.name)
+    # NamedTemporaryFile(...) as archivo_zip queda bloqueado en modo
+    # exclusivo en Windows y urlretrieve no puede reabrirlo para escribir;
+    # con TemporaryDirectory se descarga a una ruta dentro del directorio
+    # temporal, sin ese conflicto de bloqueo.
+    with tempfile.TemporaryDirectory() as temp_dir:
+        archivo_zip = Path(temp_dir) / "taxi_zones.zip"
+        urllib.request.urlretrieve(zonas_url, str(archivo_zip))
         zonas = gpd.read_file(
-            f"zip://{archivo_zip.name}!taxi_zones/taxi_zones.shp"
+            f"zip://{archivo_zip.as_posix()}!taxi_zones/taxi_zones.shp"
         )
 
     if zonas.crs is None:
