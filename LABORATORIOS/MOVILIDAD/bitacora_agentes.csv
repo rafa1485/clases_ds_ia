@@ -1,0 +1,5 @@
+hora,presion,racha_presion_alta,accion_simple,motivo_simple,accion_modelo,motivo_modelo
+8,0.5,0,NO_REFORZAR,Umbral de presión controlado (0.50 < 0.85).,NO_REFORZAR,Presión normal o primera hora alta (racha = 0).
+9,0.9,1,RECOMENDAR_REFUERZO,Umbral de presión muy alto (0.90 >= 0.85).,NO_REFORZAR,Presión normal o primera hora alta (racha = 1).
+10,0.95,2,RECOMENDAR_REFUERZO,Umbral de presión muy alto (0.95 >= 0.85).,RECOMENDAR_REFUERZO,Presión alta persistente durante 2 horas consecutivas.
+11,0.4,0,NO_REFORZAR,Umbral de presión controlado (0.40 < 0.85).,NO_REFORZAR,Presión normal o primera hora alta (racha = 0).

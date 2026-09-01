@@ -1,0 +1,4 @@
+zona_id,zona,hora,taxis_x,demanda_total,tasa_otras_simulada,viajes_otras,demanda_x,capacidad_x,viajes_atendibles_x,demanda_no_cubierta_x,presion
+161,Midtown Center,6,20,31,0.2980007946879752,12,19,20,19,0,0.95
+161,Midtown Center,7,20,56,0.25244824056730814,21,35,20,20,15,1.75
+161,Midtown Center,8,20,96,0.3341878703828209,31,65,20,20,45,3.25
