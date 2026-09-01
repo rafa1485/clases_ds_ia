@@ -1,0 +1,4 @@
+hora,presion,racha_presion_alta,accion_simple,motivo_simple,accion_modelo,motivo_modelo
+6,1.15,1,RECOMENDAR_REFUERZO,La presión (1.15) supera el umbral de 0.85,NO_REFORZAR,Presión alta por primera vez (esperando confirmación en la siguiente hora)
+7,1.95,2,RECOMENDAR_REFUERZO,La presión (1.95) supera el umbral de 0.85,RECOMENDAR_REFUERZO,Racha de presión alta mantenida por 2 horas
+8,3.1,3,RECOMENDAR_REFUERZO,La presión (3.10) supera el umbral de 0.85,RECOMENDAR_REFUERZO,Racha de presión alta mantenida por 3 horas
