@@ -1,0 +1,4 @@
+hora,presion,racha_presion_alta,accion_simple,motivo_simple,accion_modelo,motivo_modelo
+6,1.15,1,RECOMENDAR_REFUERZO,La presión (1.15) es mayor o igual al umbral de 0.85.,NO_REFORZAR,La presión alta todavía no se mantiene durante 2 horas consecutivas (racha actual: 1).
+7,1.95,2,RECOMENDAR_REFUERZO,La presión (1.95) es mayor o igual al umbral de 0.85.,RECOMENDAR_REFUERZO,La presión alta se mantiene durante 2 horas consecutivas.
+8,3.1,3,RECOMENDAR_REFUERZO,La presión (3.10) es mayor o igual al umbral de 0.85.,RECOMENDAR_REFUERZO,La presión alta se mantiene durante 3 horas consecutivas.
