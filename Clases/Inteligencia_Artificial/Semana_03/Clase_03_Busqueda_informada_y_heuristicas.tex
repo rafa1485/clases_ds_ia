@@ -1,0 +1,723 @@
+% Compilar dos veces con pdflatex.
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
+
+\definecolor{UAPNavy}{HTML}{17324D}
+\definecolor{UAPTeal}{HTML}{007F82}
+\definecolor{UAPGold}{HTML}{E2A33A}
+\definecolor{UAPLight}{HTML}{F3F6F8}
+\definecolor{UAPGray}{HTML}{536471}
+
+\tikzset{
+  flow/.style={-{Stealth[length=2.4mm]},thick,draw=UAPNavy},
+  state/.style={circle,draw=UAPTeal,fill=UAPTeal!12,very thick,minimum size=9mm,font=\bfseries},
+  goal/.style={state,double,double distance=1.2pt,draw=UAPGold},
+  card/.style={draw=UAPTeal,fill=UAPLight,rounded corners=3pt,align=center,minimum height=11mm},
+  data/.style={draw=UAPGold,fill=UAPGold!15,rounded corners=2pt,align=center,minimum height=9mm},
+  searchnode/.style={draw=UAPNavy,fill=white,rounded corners=2pt,align=center,minimum width=12mm,minimum height=8mm}
+}
+
+\usetheme{Boadilla}
+\setbeamercolor{normal text}{fg=UAPNavy,bg=white}
+\setbeamercolor{structure}{fg=UAPTeal}
+\setbeamercolor{frametitle}{fg=white,bg=UAPNavy}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=UAPGold}
+\setbeamercolor{block title}{fg=white,bg=UAPTeal}
+\setbeamercolor{block body}{fg=UAPNavy,bg=UAPLight}
+\setbeamercolor{alerted text}{fg=UAPTeal}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{UAPGold}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{UAPTeal}$\bullet$}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1em]{author in head/foot}%
+      \color{white}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1em plus1fil]{date in head/foot}%
+      \color{UAPGray}\hfill Semana 3 \enspace | \enspace \insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}}}
+
+\newcommand{\concepto}[1]{\textcolor{UAPTeal}{\textbf{#1}}}
+\newcommand{\pregunta}[1]{\begin{block}{Pregunta clave}#1\end{block}}
+\title[IA · Clase 3]{Búsqueda informada y heurísticas}
+\subtitle{De costo uniforme a A*: diseño, garantías y evaluación}
+\author{Curso de Inteligencia Artificial}
+\institute{Semana 3 · Clase 3}
+\date{}
+
+\begin{document}
+
+% 1
+\begin{frame}[plain]
+  \begin{beamercolorbox}[wd=\paperwidth,ht=\paperheight,sep=2em]{frametitle}
+    \vfill {\Huge\bfseries\inserttitle\par}\vspace{.5em}
+    {\color{UAPGold}\Large\insertsubtitle\par}\vspace{2em}
+    {\color{white}\large\insertauthor\par\insertinstitute\par}\vfill
+  \end{beamercolorbox}
+\end{frame}
+
+% 2
+\begin{frame}{Propósito de la clase}
+  Incorporar conocimiento del problema para orientar la búsqueda sin confundir rapidez con garantía.
+  \begin{block}{Al finalizar, podremos}
+    \begin{itemize}
+      \item definir y auditar una función heurística;
+      \item ejecutar búsqueda voraz y A*;
+      \item distinguir admisibilidad de consistencia;
+      \item explicar cuándo A* requiere reaperturas;
+      \item diseñar una comparación reproducible entre UCS y A*.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% 3
+\begin{frame}{Punto de partida}
+  La clase anterior dejó establecidos:
+  \begin{itemize}
+    \item el problema $P=(S,A,T,s_0,G,c)$;
+    \item nodo, frontera y conjunto explorado;
+    \item control de ciclos y mejores costos;
+    \item BFS, DFS y costo uniforme;
+    \item garantías condicionadas por representación y costos.
+  \end{itemize}
+  \begin{block}{Continuidad}
+    UCS ordena por costo recorrido; ahora agregaremos una estimación del costo restante.
+  \end{block}
+\end{frame}
+
+% 4
+\begin{frame}{Pregunta de apertura}
+  \pregunta{Si dos caminos cuestan lo mismo hasta ahora, ¿cómo decidir cuál explorar primero?}
+  \begin{itemize}
+    \item ¿Qué conocimiento adicional está permitido?
+    \item ¿En qué unidades debe expresarse?
+    \item ¿Cómo sabemos si orienta sin engañar?
+    \item ¿Qué garantía queremos conservar?
+  \end{itemize}
+\end{frame}
+
+% 5
+\begin{frame}[fragile]{El esquema de búsqueda no cambia}
+\small
+\begin{verbatim}
+insertar nodo inicial en frontera
+mientras frontera no esté vacía:
+    extraer el nodo con menor valor de prioridad
+    descartar entradas obsoletas
+    si es objetivo: devolver camino
+    relajar cada transición legal
+devolver fracaso
+\end{verbatim}
+  \alert{La estrategia cambia al definir la prioridad de la frontera.}
+\end{frame}
+
+% 6
+\begin{frame}{Una familia, distintas prioridades}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth}p{.20\textwidth}X}
+    \toprule
+    Estrategia & Prioridad & Pregunta que privilegia \\\midrule
+    BFS & profundidad & ¿Cuántos pasos llevo? \\
+    UCS & $g(n)$ & ¿Cuánto costó llegar? \\
+    Voraz & $h(n)$ & ¿Qué parece más cerca? \\
+    A* & $g(n)+h(n)$ & ¿Qué solución total parece más barata? \\
+    \bottomrule
+  \end{tabularx}
+  \vfill
+  La prioridad no modifica el grafo ni el costo real del camino.
+\end{frame}
+
+% 7
+\begin{frame}{Búsqueda no informada e informada}
+  \small
+  Ambas parten de $P=(S,A,T,s_0,G,c)$. La diferencia es la información usada para ordenar la frontera.
+  \vspace{.4em}
+  \begin{columns}[T]
+    \column{.48\textwidth}
+      \begin{block}{No informada: sin $h$}
+        \begin{itemize}
+          \item Usa la definición del problema y el costo recorrido.
+          \item No estima el costo que falta.
+          \item Incluye BFS, DFS, limitada, iterativa y UCS.
+          \item Prioriza por profundidad, orden o $g(n)$.
+        \end{itemize}
+      \end{block}
+      {\scriptsize UCS pertenece aquí: $g(n)$ es costo exacto del pasado, no una estimación del futuro.}
+    \column{.48\textwidth}
+      \begin{block}{Informada: incorpora $h$}
+        \begin{itemize}
+          \item Añade una estimación dirigida al objetivo.
+          \item Voraz prioriza $h(n)$.
+          \item A* prioriza $g(n)+h(n)$.
+          \item La garantía depende de la estrategia y de $h$.
+        \end{itemize}
+      \end{block}
+      {\scriptsize Voraz es informada, pero no es óptima en general.}
+  \end{columns}
+  \vfill
+  \alert{No informada no significa aleatoria; informada no significa conocer el futuro ni garantizar optimalidad.}
+\end{frame}
+
+% 8
+\begin{frame}{Punto de control: costo uniforme}
+  UCS extrae el nodo con menor $g(n)$.
+  \begin{itemize}
+    \item Usa una cola de prioridad.
+    \item Conserva el mejor costo conocido por estado.
+    \item Prueba el objetivo al extraer, no al generar.
+    \item Descarta entradas obsoletas.
+    \item Es óptima bajo los supuestos declarados.
+  \end{itemize}
+  \begin{alertblock}{Límite}
+    Puede expandir muchas alternativas baratas que se alejan del objetivo.
+  \end{alertblock}
+\end{frame}
+
+% 9
+\begin{frame}{¿Qué añade la búsqueda informada?}
+  Añade conocimiento para ordenar la exploración:
+  \[
+    h(n)\approx \text{costo mínimo que falta desde }n\text{ hasta un objetivo}
+  \]
+  \begin{itemize}
+    \item No altera $g(n)$.
+    \item No crea conexiones inexistentes.
+    \item No corrige estados insuficientes.
+    \item No reemplaza restricciones.
+  \end{itemize}
+  \alert{Una heurística guía la búsqueda dentro del problema ya formulado.}
+\end{frame}
+
+% 10
+\begin{frame}{Función heurística}
+  Una heurística es una función:
+  \[
+    h:S\rightarrow\mathbb{R}
+  \]
+  \begin{itemize}
+    \item $h(n)$: estimación del costo restante;
+    \item $h^*(n)$: costo óptimo restante verdadero;
+    \item $h(g)=0$ para todo estado objetivo $g$.
+  \end{itemize}
+  \begin{block}{Convención}
+    La heurística se evalúa sobre estados, aunque se escriba $h(n)$ por conveniencia.
+  \end{block}
+\end{frame}
+
+% 11
+\begin{frame}{Tres cantidades diferentes}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.15\textwidth}Xp{.28\textwidth}}
+    \toprule
+    Cantidad & Significado & Disponibilidad \\\midrule
+    $g(n)$ & costo acumulado desde $s_0$ & conocido al generar \\
+    $h(n)$ & estimación del costo restante & calculado por la heurística \\
+    $f(n)$ & prioridad de la estrategia & depende del algoritmo \\
+    \bottomrule
+  \end{tabularx}
+  \vfill
+  En A*:
+  \[
+    \boxed{f(n)=g(n)+h(n)}
+  \]
+  $f$ estima el costo total de una solución que pasa por $n$.
+\end{frame}
+
+% 12
+\begin{frame}{La unidad debe coincidir}
+  Si $g$ está en minutos, $h$ también debe estar en minutos.
+  \begin{table}
+  \begin{tabularx}{.88\textwidth}{>{\bfseries}p{.28\textwidth}X}
+    \toprule
+    Costo objetivo & Heurística candidata \\\midrule
+    distancia & separación geométrica inferior \\
+    tiempo & distancia / velocidad máxima válida \\
+    cantidad de pasos & mínimo de pasos pendientes \\
+    \bottomrule
+  \end{tabularx}
+  \end{table}
+  \begin{alertblock}{Inválido}
+    Sumar kilómetros y minutos sin una conversión justificada.
+  \end{alertblock}
+\end{frame}
+
+% 13
+\begin{frame}{Dos extremos útiles}
+  \begin{columns}[T]
+    \column{.47\textwidth}
+      \begin{block}{Heurística nula}
+        \[
+          h(n)=0
+        \]
+        A* se convierte en UCS. Es segura, pero no aporta orientación.
+      \end{block}
+    \column{.47\textwidth}
+      \begin{block}{Heurística perfecta}
+        \[
+          h(n)=h^*(n)
+        \]
+        Orienta idealmente, pero calcularla suele equivaler a resolver el problema.
+      \end{block}
+  \end{columns}
+  \vfill
+  \centering\concepto{Buscamos una aproximación barata, informativa y justificable.}
+\end{frame}
+
+% 14
+\begin{frame}{Informativa no significa segura}
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.28\textwidth}X}
+    \toprule
+    Dimensión & Pregunta \\\midrule
+    Calidad empírica & ¿Reduce expansiones y discrimina alternativas? \\
+    Garantía teórica & ¿Respeta una relación demostrable con $h^*$ y los costos? \\
+    \bottomrule
+  \end{tabularx}
+  \vfill
+  \begin{alertblock}{No alcanza con parecer correcta}
+    Una alta correlación con el costo verdadero no demuestra admisibilidad.
+  \end{alertblock}
+\end{frame}
+
+% 15
+\begin{frame}{Lista de control inicial}
+  Antes de usar $h$, declarar:
+  \begin{enumerate}
+    \item qué costo estima y en qué unidad;
+    \item qué información utiliza;
+    \item por qué vale cero en el objetivo;
+    \item si puede ser negativa;
+    \item cómo se comprobará consistencia;
+    \item cuánto cuesta calcularla.
+  \end{enumerate}
+  \begin{block}{Criterio}
+    Una fórmula intuitiva no es todavía una heurística defendible.
+  \end{block}
+\end{frame}
+
+% 16
+\begin{frame}{Búsqueda voraz por el mejor primero}
+  La búsqueda voraz ordena la frontera solo por:
+  \[
+    \boxed{f(n)=h(n)}
+  \]
+  \begin{itemize}
+    \item Elige el estado que parece más cercano al objetivo.
+    \item Ignora cuánto costó llegar hasta allí.
+    \item Puede encontrar rápidamente una solución plausible.
+    \item No garantiza el menor costo.
+  \end{itemize}
+\end{frame}
+
+% 17
+\begin{frame}{Contraejemplo para la búsqueda voraz}
+  \centering
+  \begin{tikzpicture}[scale=.9,transform shape]
+    \node[state] (s) at (0,0) {S};
+    \node[state] (a) at (3,1.35) {A};
+    \node[state] (b) at (3,-1.35) {B};
+    \node[goal] (g) at (6,0) {G};
+    \draw[flow] (s)--node[above,sloped]{100}(a);
+    \draw[flow] (s)--node[below,sloped]{1}(b);
+    \draw[flow] (a)--node[above,sloped]{1}(g);
+    \draw[flow] (b)--node[below,sloped]{5}(g);
+    \node[data,above=4mm of a] {$h(A)=1$};
+    \node[data,below=4mm of b] {$h(B)=5$};
+  \end{tikzpicture}
+  \vfill
+  Voraz elige $A$ y devuelve costo 101; existe $S\rightarrow B\rightarrow G$ de costo 6.
+\end{frame}
+
+% 18
+\begin{frame}{¿Por qué falla la voraz?}
+  \begin{table}
+  \begin{tabular}{lrrr}
+    \toprule
+    Nodo & $g$ & $h$ & prioridad voraz \\\midrule
+    A & 100 & 1 & 1 \\
+    B & 1 & 5 & 5 \\
+    \bottomrule
+  \end{tabular}
+  \end{table}
+  \begin{block}{Lectura}
+    La heurística describe costo restante, no costo total.
+  \end{block}
+  \alert{Al ignorar $g$, una promesa cercana puede ocultar un pasado extremadamente caro.}
+\end{frame}
+
+% 19
+\begin{frame}{Alcance de la búsqueda voraz}
+  \begin{itemize}
+    \item En un grafo finito con control de repetidos, termina.
+    \item En espacios infinitos no es completa en general.
+    \item No es óptima, incluso si $h$ es admisible.
+    \item Debe evaluarse tanto velocidad como calidad de solución.
+  \end{itemize}
+  \begin{block}{Uso razonable}
+    Obtener una solución rápida cuando la optimalidad no es obligatoria.
+  \end{block}
+\end{frame}
+
+% 20
+\begin{frame}{Algoritmo A*}
+  A* equilibra lo recorrido y lo que falta:
+  \[
+    \boxed{f(n)=g(n)+h(n)}
+  \]
+  \begin{itemize}
+    \item $g(n)$ aporta evidencia del camino ya recorrido.
+    \item $h(n)$ orienta hacia regiones prometedoras.
+    \item Se extrae el nodo con menor $f$.
+  \end{itemize}
+  \begin{block}{Caso límite}
+    Con $h=0$, A* reproduce el comportamiento de UCS.
+  \end{block}
+\end{frame}
+
+% 21
+\begin{frame}{Qué debe guardar A*}
+  Cada nodo conserva:
+  \[
+    n=(\text{estado},\text{padre},\text{acción},g,h,f)
+  \]
+  La implementación también necesita:
+  \begin{itemize}
+    \item cola de prioridad por $f$;
+    \item \texttt{mejor\_g[estado]};
+    \item regla de desempate estable;
+    \item padres para reconstruir el camino;
+    \item política explícita de reapertura.
+  \end{itemize}
+\end{frame}
+
+% 22
+\begin{frame}[fragile]{Pseudocódigo de A*}
+\small
+\begin{verbatim}
+frontera <- prioridad por f
+mejor_g[inicial] <- 0
+insertar inicial con f = h(inicial)
+mientras haya frontera:
+    n <- extraer mínimo
+    si n.g es obsoleto: continuar
+    si n es objetivo: devolver camino
+    para cada sucesor:
+        nuevo_g <- n.g + costo
+        si nuevo_g mejora mejor_g:
+            registrar e insertar con f = nuevo_g + h
+devolver fracaso
+\end{verbatim}
+\end{frame}
+
+% 23
+\begin{frame}{Grafo didáctico para A*}
+  \centering
+  \begin{tikzpicture}[scale=.82,transform shape]
+    \node[state] (s) at (0,0) {S};
+    \node[state] (a) at (2.2,1.45) {A};
+    \node[state] (b) at (2.2,-1.45) {B};
+    \node[state] (c) at (4.5,1.45) {C};
+    \node[state] (d) at (4.5,-1.1) {D};
+    \node[goal] (g) at (7,0) {G};
+    \draw[flow] (s)--node[above,sloped]{2}(a);
+    \draw[flow] (s)--node[below,sloped]{2}(b);
+    \draw[flow] (a)--node[above]{2}(c);
+    \draw[flow] (a)--node[above,sloped]{5}(d);
+    \draw[flow] (b)--node[below,sloped]{2}(d);
+    \draw[flow] (c)--node[above,sloped]{3}(g);
+    \draw[flow] (d)--node[below,sloped]{6}(g);
+    \node[font=\scriptsize,below=2mm of s] {$h=7$};
+    \node[font=\scriptsize,above=2mm of a] {$h=5$};
+    \node[font=\scriptsize,below=2mm of b] {$h=7$};
+    \node[font=\scriptsize,above=2mm of c] {$h=3$};
+    \node[font=\scriptsize,below=2mm of d] {$h=6$};
+    \node[font=\scriptsize,below=2mm of g] {$h=0$};
+  \end{tikzpicture}
+  \vfill
+  Aristas dirigidas · costos no negativos · desempate por orden de inserción.
+\end{frame}
+
+% 24
+\begin{frame}{A*: inicialización}
+  \begin{table}
+  \begin{tabular}{lrrr}
+    \toprule
+    Nodo & $g$ & $h$ & $f$ \\\midrule
+    S & 0 & 7 & 7 \\
+    \bottomrule
+  \end{tabular}
+  \end{table}
+  \begin{block}{Primera extracción}
+    Se extrae $S$ porque es el único nodo disponible.
+  \end{block}
+  \centering Regla de desempate del ejemplo: \concepto{orden de inserción}.
+\end{frame}
+
+% 25
+\begin{frame}{A*: después de expandir S}
+  \begin{table}
+  \begin{tabular}{lrrr}
+    \toprule
+    Frontera & $g$ & $h$ & $f$ \\\midrule
+    A & 2 & 5 & 7 \\
+    B & 2 & 7 & 9 \\
+    \bottomrule
+  \end{tabular}
+  \end{table}
+  \begin{block}{Decisión}
+    A* extrae $A$. Ambos caminos recorridos cuestan lo mismo; la heurística rompe la igualdad.
+  \end{block}
+\end{frame}
+
+% 26
+\begin{frame}{A*: de A al objetivo}
+  \small
+  \begin{tabular}{lrrr}
+    \toprule
+    Frontera tras expandir A & $g$ & $h$ & $f$ \\\midrule
+    C & 4 & 3 & 7 \\
+    B & 2 & 7 & 9 \\
+    D & 7 & 6 & 13 \\
+    \bottomrule
+  \end{tabular}
+  \vfill
+  Al expandir $C$ aparece $G$ con $g=f=7$. Al extraer $G$:
+  \[
+    \boxed{S\rightarrow A\rightarrow C\rightarrow G,\qquad C^*=7}
+  \]
+\end{frame}
+
+% 27
+\begin{frame}{UCS y A* sobre la misma instancia}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.34\textwidth}XX}
+    \toprule
+    Resultado & UCS & A* \\\midrule
+    Camino & $S-A-C-G$ & $S-A-C-G$ \\
+    Costo & 7 & 7 \\
+    Prioridad & $g$ & $g+h$ \\
+    Expandidos antes de extraer G & $S,A,B,C,D$ & $S,A,C$ \\
+    \bottomrule
+  \end{tabularx}
+  \vfill
+  \alert{La heurística reduce expansiones en este ejemplo; no reduce el costo óptimo.}
+\end{frame}
+
+% 28
+\begin{frame}{A* no significa óptimo automáticamente}
+  \small
+  La garantía depende de:
+  \begin{itemize}
+    \item ramificación finita;
+    \item costos no negativos y, para terminación, $c\geq\varepsilon>0$;
+    \item objetivo comprobado al extraer;
+    \item conservación del mejor $g$;
+    \item descarte de entradas obsoletas;
+    \item reapertura cuando sea necesaria;
+    \item propiedades demostradas de $h$;
+    \item unidades compatibles.
+  \end{itemize}
+  \alert{El nombre del algoritmo no sustituye estas condiciones.}
+\end{frame}
+
+% 29
+\begin{frame}{Heurística admisible}
+  Una heurística es admisible si nunca sobreestima:
+  \[
+    \boxed{0\leq h(n)\leq h^*(n)}
+  \]
+  \begin{itemize}
+    \item Es una cota inferior, no una predicción promedio.
+    \item Debe cumplirse para todos los estados relevantes.
+    \item Una sola sobreestimación rompe la garantía general.
+  \end{itemize}
+  \begin{block}{Alcance}
+    Admisibilidad se refiere al costo óptimo restante global.
+  \end{block}
+\end{frame}
+
+% 30
+\begin{frame}{Intuición de optimalidad}
+  Para un nodo sobre un camino óptimo:
+  \[
+    f(n)=g(n)+h(n)\leq C^*
+  \]
+  Para una solución subóptima de costo $C>C^*$:
+  \[
+    f(G)=g(G)=C>C^*
+  \]
+  \begin{block}{Lectura}
+    La frontera conserva antes algún candidato compatible con costo óptimo, siempre que se respeten las demás condiciones de A*.
+  \end{block}
+\end{frame}
+
+% 31
+\begin{frame}{Heurística consistente}
+  Para toda transición $n\rightarrow n'$:
+  \[
+    \boxed{h(n)\leq c(n,n')+h(n')}
+  \]
+  Es una desigualdad triangular. Entonces:
+  \[
+    f(n')=g(n)+c(n,n')+h(n')\geq g(n)+h(n)=f(n)
+  \]
+  \begin{block}{Consecuencia}
+    Con $h(G)=0$ y $h(n)\geq0$, consistencia implica la admisibilidad adoptada y los valores $f$ no disminuyen.
+  \end{block}
+\end{frame}
+
+% 32
+\begin{frame}{Auditoría local de consistencia}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.20\textwidth}p{.25\textwidth}>{\bfseries}p{.20\textwidth}X}
+    \toprule
+    Arista & Comprobación & Arista & Comprobación \\\midrule
+    $S\rightarrow A$ & $7\leq2+5$ & $S\rightarrow B$ & $7\leq2+7$ \\
+    $A\rightarrow C$ & $5\leq2+3$ & $A\rightarrow D$ & $5\leq5+6$ \\
+    $B\rightarrow D$ & $7\leq2+6$ & $C\rightarrow G$ & $3\leq3+0$ \\
+    $D\rightarrow G$ & $6\leq6+0$ & & \\
+    \bottomrule
+  \end{tabularx}
+  \vfill
+  Cero violaciones demuestra consistencia \concepto{en este grafo revisado}, no en datos futuros.
+\end{frame}
+
+% 33
+\begin{frame}{Admisible pero inconsistente}
+  Admisibilidad no garantiza consistencia.
+  \begin{itemize}
+    \item Los valores $f$ pueden disminuir a lo largo de un camino.
+    \item Puede aparecer después un camino más barato hacia un estado cerrado.
+    \item A* debe permitir la \concepto{reapertura} cuando mejora \texttt{mejor\_g}.
+    \item Cerrar estados para siempre puede producir una solución subóptima.
+  \end{itemize}
+  \begin{alertblock}{Regla de implementación}
+    No prohibir reaperturas sin haber demostrado consistencia.
+  \end{alertblock}
+\end{frame}
+
+% 34
+\begin{frame}{Cómo diseñar una heurística}
+  \scriptsize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.22\textwidth}X}
+    \toprule
+    Principio & Idea \\\midrule
+    Relajación & eliminar restricciones y resolver el problema más fácil \\
+    Abstracción & buscar exactamente en un espacio reducido \\
+    Geometría & usar distancias y límites físicos \\
+    Descomposición & combinar subcostos sin doble conteo \\
+    Patrones & precomputar costos de configuraciones abstractas \\
+    \bottomrule
+  \end{tabularx}
+  \vfill
+  \alert{La procedencia de la cota debe quedar documentada.}
+\end{frame}
+
+% 35
+\begin{frame}{Combinar y evaluar heurísticas}
+  \small
+  Si $h_1$ y $h_2$ son admisibles:
+  \begin{itemize}
+    \item $\max(h_1,h_2)$ también es admisible y domina a ambas;
+    \item $h_1+h_2$ requiere costos aditivos sin superposición.
+  \end{itemize}
+  \begin{block}{Evaluar sobre las mismas instancias}
+    \begin{itemize}
+      \item costo de solución;
+      \item nodos generados y expandidos;
+      \item frontera máxima y reaperturas;
+      \item tiempo de búsqueda y costo de calcular $h$.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% 36
+\begin{frame}{Comparación de estrategias}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.17\textwidth}p{.18\textwidth}p{.22\textwidth}X}
+    \toprule
+    Estrategia & Prioridad & Óptima & Riesgo principal \\\midrule
+    BFS & profundidad & costos iguales* & memoria \\
+    UCS & $g$ & sí* & expansión amplia \\
+    Voraz & $h$ & no & solución cara \\
+    A* & $g+h$ & sí* & memoria y supuestos \\
+    \bottomrule
+  \end{tabularx}
+  \vfill
+  {\scriptsize\alert{* Bajo ramificación finita, costo mínimo positivo cuando corresponda, prueba correcta del objetivo, repetidos y propiedad heurística declarada.}}
+\end{frame}
+
+% 37
+\begin{frame}{MOV-02: movilidad como grafo OD}
+  \small
+  Esta es una abstracción distinta de la reasignación de flota: se buscan caminos sobre conectividad OD agregada.
+  \vspace{.4em}
+  \begin{columns}[T]
+    \column{.49\textwidth}
+      \begin{block}{Representación}
+        \begin{itemize}
+          \item Nodo: zona TLC.
+          \item Arista $i\rightarrow j$: suficientes viajes reportados.
+          \item Costo: duración o distancia mediana.
+          \item Referencia: UCS sobre la misma instancia.
+        \end{itemize}
+      \end{block}
+    \column{.47\textwidth}
+      \begin{block}{Heurística candidata}
+        Separación geográfica con escala y unidad compatibles, auditada arista por arista.
+      \end{block}
+      \begin{alertblock}{Límite}
+        El camino no es una ruta vial ni una trayectoria observada completa.
+      \end{alertblock}
+  \end{columns}
+\end{frame}
+
+% 38
+\begin{frame}{Actividad: definir y probar una heurística}
+  \small
+  En equipos:
+  \begin{enumerate}
+    \item fijar origen, objetivo, costos y desempate;
+    \item ejecutar UCS como referencia;
+    \item proponer $h$ en la misma unidad;
+    \item comprobar $h(G)=0$, no negatividad y consistencia;
+    \item ejecutar A* bajo idénticas condiciones;
+    \item comparar costo, camino, generados, expandidos y frontera máxima;
+    \item explicar qué ocurre con $h=0$.
+  \end{enumerate}
+  \begin{block}{Producto}
+    Definición y prueba de la heurística, sin resultados inventados.
+  \end{block}
+\end{frame}
+
+% 39
+\begin{frame}{Síntesis y continuidad}
+  \small
+  \begin{columns}[T]
+    \column{.58\textwidth}
+      \begin{block}{Ideas centrales}
+        \begin{itemize}
+          \item Voraz usa $h$; A* combina $g+h$.
+          \item Admisibilidad es global; consistencia se audita localmente.
+          \item A* necesita implementación y supuestos correctos.
+          \item Menos expansiones no significa menor costo.
+          \item $h$ comparte unidad y semántica con el costo.
+        \end{itemize}
+      \end{block}
+    \column{.38\textwidth}
+      \begin{block}{Lectura}
+        Capítulo 7, §7.3\\[.4em]
+        Capítulo 6, §6.4\\[.4em]
+        Actividad MOV-02
+      \end{block}
+  \end{columns}
+  \vfill
+  \centering\Large\concepto{Una heurística útil también debe ser auditable.}
+\end{frame}
+
+\end{document}
