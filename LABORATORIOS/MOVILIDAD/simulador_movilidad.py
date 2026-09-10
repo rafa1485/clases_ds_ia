@@ -7,6 +7,7 @@ representa solicitudes no atendidas ni la demanda total de movilidad.
 
 from __future__ import annotations
 
+import os
 import argparse
 import calendar
 import tempfile
@@ -53,11 +54,16 @@ def cargar_centros_zonas(zonas_url: str = ZONAS_URL) -> pd.DataFrame:
             "Instale las dependencias con: pip install -r requirements.txt"
         ) from exc
 
-    with tempfile.NamedTemporaryFile(suffix=".zip") as archivo_zip:
-        urllib.request.urlretrieve(zonas_url, archivo_zip.name)
-        zonas = gpd.read_file(
-            f"zip://{archivo_zip.name}!taxi_zones/taxi_zones.shp"
-        )
+    with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as archivo_zip:
+        archivo_zip_path = archivo_zip.name
+
+    urllib.request.urlretrieve(zonas_url, archivo_zip_path)
+
+    zonas = gpd.read_file(
+        f"zip://{archivo_zip_path}!taxi_zones/taxi_zones.shp"
+    )
+
+    os.remove(archivo_zip_path)
 
     if zonas.crs is None:
         raise ValueError("Las geometrías de las zonas TLC no tienen un CRS definido")

@@ -1,0 +1,4 @@
+hora,presion,racha_presion_alta,accion_simple,motivo_simple,accion_modelo,motivo_modelo
+6,1.15,1,RECOMENDAR_REFUERZO,La presión (1.15) es mayor o igual al umbral (0.85).,NO_REFORZAR,"La racha de presión alta es de 1 hora(s), menos de 2."
+7,1.95,2,RECOMENDAR_REFUERZO,La presión (1.95) es mayor o igual al umbral (0.85).,RECOMENDAR_REFUERZO,Se acumularon 2 horas consecutivas con presión alta.
+8,3.1,3,RECOMENDAR_REFUERZO,La presión (3.10) es mayor o igual al umbral (0.85).,RECOMENDAR_REFUERZO,Se acumularon 3 horas consecutivas con presión alta.
