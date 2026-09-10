@@ -1,0 +1,682 @@
+% Compilar desde este directorio con:
+% pdflatex Clase_04_Probabilidad_incertidumbre_y_decisiones.tex
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric}
+
+\definecolor{UAPNavy}{HTML}{17324D}
+\definecolor{UAPTeal}{HTML}{007F82}
+\definecolor{UAPGold}{HTML}{E2A33A}
+\definecolor{UAPLight}{HTML}{F3F6F8}
+\definecolor{UAPGray}{HTML}{536471}
+\definecolor{UAPRed}{HTML}{A94343}
+
+\tikzset{
+  flow/.style={-{Stealth[length=2.2mm]},thick,draw=UAPNavy},
+  return/.style={-{Stealth[length=2mm]},thick,dashed,draw=UAPGray},
+  datum/.style={draw=UAPGold,fill=UAPGold!16,rounded corners=2pt,align=center,minimum height=8mm},
+  process/.style={draw=UAPTeal,fill=UAPTeal!12,rounded corners=3pt,very thick,align=center,minimum height=10mm},
+  decision/.style={draw=UAPNavy,fill=UAPNavy!9,rounded corners=3pt,very thick,align=center,minimum height=10mm},
+  card/.style={draw=UAPTeal,fill=UAPLight,rounded corners=3pt,align=center,minimum height=11mm},
+  warning/.style={draw=UAPRed,fill=UAPRed!7,rounded corners=3pt,align=left}
+}
+
+\usetheme{Boadilla}
+\usecolortheme{default}
+\setbeamercolor{normal text}{fg=UAPNavy,bg=white}
+\setbeamercolor{structure}{fg=UAPTeal}
+\setbeamercolor{frametitle}{fg=white,bg=UAPNavy}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=UAPGold}
+\setbeamercolor{block title}{fg=white,bg=UAPTeal}
+\setbeamercolor{block body}{fg=UAPNavy,bg=UAPLight}
+\setbeamercolor{alertblock title}{fg=white,bg=UAPRed}
+\setbeamercolor{alertblock body}{fg=UAPNavy,bg=UAPRed!7}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{UAPGold}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{UAPTeal}$\bullet$}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1em]{author in head/foot}%
+      \color{white}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1em plus1fil]{date in head/foot}%
+      \color{UAPGray}\hfill Semana 4 \enspace | \enspace \insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+\newcommand{\concepto}[1]{\textcolor{UAPTeal}{\textbf{#1}}}
+\newcommand{\br}{\\}
+\newcommand{\explicacion}[1]{\par\vspace{.25em}{\scriptsize\color{UAPGray}\textit{#1}\par}}
+
+\title[Data Science · Clase 4]{Probabilidad, incertidumbre y decisiones}
+\subtitle{De una muestra observada a una acción defendible}
+\author{Curso de Data Science}
+\institute{Semana 4 · Clase 4}
+\date{}
+
+\begin{document}
+
+% 1
+\begin{frame}[plain]
+  \begin{beamercolorbox}[wd=\paperwidth,ht=\paperheight,sep=2em]{frametitle}
+    \vfill
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\Huge\inserttitle\par}
+    \vspace{.45em}
+    {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\Large\insertsubtitle\par}
+    \vspace{1.1em}
+    \begin{tikzpicture}[node distance=5mm,scale=.78,transform shape,every node/.style={text=UAPNavy}]
+      \node[datum] (m) {Muestra};
+      \node[process,right=of m] (e) {Estimación};
+      \node[decision,right=of e] (i) {Incertidumbre};
+      \node[datum,right=of i] (d) {Decisión};
+      \draw[flow] (m)--(e); \draw[flow] (e)--(i); \draw[flow] (i)--(d);
+    \end{tikzpicture}\par
+    \vspace{.7em}
+    {\color{white}\small La muestra aporta evidencia parcial; la estimación resume lo observado; la incertidumbre reconoce lo que puede variar; la decisión incorpora consecuencias.\par}
+    \vfill
+    {\color{UAPGold}\large\insertauthor\par}
+    {\color{white}\insertinstitute\par}
+  \end{beamercolorbox}
+\end{frame}
+
+% 2
+\begin{frame}{De los hallazgos a las decisiones}
+  \small
+  En la Semana 3 aprendimos a describir distribuciones y asociaciones. Ahora preguntaremos cuánto podemos generalizar y cómo actuar cuando el resultado todavía es incierto.
+  \vspace{.45em}
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} X X}
+    \toprule Etapa & Pregunta & Producto \\ \midrule
+    Explorar & ¿Qué patrón aparece? & Hallazgo descriptivo \\
+    Estimar & ¿Qué cantidad desconocida aproximamos? & Estimación \\
+    Cuantificar & ¿Cuánto podría cambiar? & Medida de incertidumbre \\
+    Decidir & ¿Qué acción conviene? & Regla explícita \\
+    \bottomrule
+  \end{tabularx}
+  \explicacion{Las etapas se conectan, pero no son equivalentes: observar un patrón no determina automáticamente una acción.}
+\end{frame}
+
+% 3
+\begin{frame}{Propósito y resultados de aprendizaje}
+  \small
+  \textbf{Propósito:} comprender cómo la probabilidad representa incertidumbre y cómo una decisión agrega objetivos, costos y restricciones a la evidencia disponible.
+  \begin{block}{Al finalizar, podremos}
+    \begin{itemize}
+      \item definir población, muestra, parámetro y estimación;
+      \item calcular probabilidades marginales, conjuntas y condicionales;
+      \item interpretar independencia y actualización bayesiana;
+      \item reconocer variabilidad muestral y evaluar estabilidad;
+      \item distinguir descripción, predicción y prescripción;
+      \item comparar acciones mediante consecuencias esperadas.
+    \end{itemize}
+  \end{block}
+  \explicacion{La clase desarrolla razonamiento conceptual y ejemplos numéricos breves; no entrena todavía un modelo predictivo.}
+\end{frame}
+
+% 4
+\begin{frame}{Continuidad de las semanas 1 a 4}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.19\textwidth} X X}
+    \toprule Semana & Pregunta central & Producto \\ \midrule
+    1. Formulación & ¿Qué necesidad y decisión importan? & Problema analítico \\
+    2. Preparación & ¿Qué representa cada fila? & Tabla defendible \\
+    3. Exploración & ¿Qué patrones aparecen? & Hallazgos limitados \\
+    4. Incertidumbre & ¿Qué puede variar y cómo decidimos? & Regla de decisión \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.45em}\centering
+  \begin{tikzpicture}[node distance=4mm,scale=.7,transform shape]
+    \node[decision] (p) {Problema}; \node[process,right=of p] (d) {Datos};
+    \node[process,right=of d] (h) {Hallazgo}; \node[process,right=of h] (e) {Estimación};
+    \node[datum,right=of e] (a) {Decisión};
+    \draw[flow] (p)--(d); \draw[flow] (d)--(h); \draw[flow] (h)--(e); \draw[flow] (e)--(a);
+    \draw[return,bend left=35] (e) to (d); \draw[return,bend left=45] (a) to (p);
+  \end{tikzpicture}
+  \explicacion{Los retornos indican que una estimación inestable puede exigir más datos y que una decisión inviable puede obligar a reformular la pregunta.}
+\end{frame}
+
+% 5
+\begin{frame}{Pregunta de apertura: ¿qué tan probable es?}
+  \small
+  \begin{alertblock}{Caso transversal}
+    Una organización dispone de muestras históricas de calidad del agua y solo puede revisar algunos sitios. Desea priorizar aquellos con mayor posibilidad de detectar coliformes.
+  \end{alertblock}
+  Antes de responder necesita precisar:
+  \begin{itemize}
+    \item qué evento contará como detección y qué población desea representar;
+    \item qué evidencia estaba disponible antes de decidir;
+    \item qué costo tiene revisar y qué costo tiene omitir;
+    \item cuántas revisiones puede realizar.
+  \end{itemize}
+\end{frame}
+
+% 6
+\begin{frame}{Describir no es predecir}
+  \small
+  \begin{tabularx}{\textwidth}{X >{\bfseries}p{.18\textwidth} p{.22\textwidth}}
+    \toprule Afirmación & Tipo & Referencia \\ \midrule
+    ``El 3\% de las muestras registradas tuvo detección'' & Descriptiva & Datos observados \\
+    ``Una nueva muestra tiene 3\% de probabilidad de detección'' & Predictiva & Caso no observado \\
+    ``Conviene revisar este sitio'' & Prescriptiva & Acción y consecuencias \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.7em}
+  La primera frase resume un archivo; la segunda generaliza bajo supuestos; la tercera agrega una comparación entre acciones.
+  \explicacion{El cambio de verbo revela un cambio de pregunta: frecuencia observada, incertidumbre futura y elección no son sinónimos.}
+\end{frame}
+
+% 7
+\begin{frame}{Población, muestra y unidad de análisis}
+  \footnotesize
+  \begin{itemize}
+    \item \concepto{Población objetivo:} conjunto sobre el cual interesa afirmar o decidir.
+    \item \concepto{Muestra:} subconjunto observado mediante un mecanismo de selección.
+    \item \concepto{Unidad de análisis:} objeto representado por cada observación utilizada.
+    \item \concepto{Población registrada:} eventos capturados por el sistema en el alcance declarado.
+  \end{itemize}
+  \centering
+  \begin{tikzpicture}[scale=.78,transform shape]
+    \node[draw=UAPNavy,fill=UAPNavy!6,minimum width=10cm,minimum height=2.2cm,rounded corners] (o) {};
+    \node[draw=UAPTeal,fill=UAPTeal!10,minimum width=7cm,minimum height=1.5cm,rounded corners] (a) {};
+    \node[draw=UAPGold,fill=UAPGold!18,minimum width=3.4cm,minimum height=.8cm,rounded corners] (m) {Muestra observada};
+    \node[above=.05cm of o.south] {Población objetivo};
+    \node[above=.05cm of a.south] {Población accesible};
+  \end{tikzpicture}
+  \explicacion{Las inclusiones representan reducciones conceptuales: cada frontera puede excluir unidades y modificar qué generalizaciones son razonables.}
+  \raggedright En el caso del agua, una fila es una muestra en un sitio, fecha y hora; no representa automáticamente a todos los hogares.
+\end{frame}
+
+% 8
+\begin{frame}{Parámetro, estadístico y estimación}
+  \small
+  Un \concepto{parámetro} es una cantidad fija pero desconocida de la población. Un \concepto{estadístico} es una función de los datos y puede usarse como estimación:
+  \[
+    \widehat p=\frac{x}{n}
+  \]
+  donde $x$ es el número de detecciones válidas y $n$ el total de muestras válidas.
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.17\textwidth} X X}
+    \toprule Objeto & Se refiere a & Estado \\ \midrule
+    $p$ & Población definida & Desconocido \\
+    $\widehat p$ & Muestra observada & Calculable \\
+    \bottomrule
+  \end{tabularx}
+  \explicacion{Usamos el estadístico como estimación del parámetro; la igualdad entre ambos no está garantizada.}
+\end{frame}
+
+% 9
+\begin{frame}{¿Por qué cambia una estimación?}
+  \small
+  Si repitiéramos el muestreo, las unidades seleccionadas y los resultados podrían ser diferentes, aun cuando la población permanezca estable.
+  \par\vspace{.5em}\centering
+  \begin{tikzpicture}[node distance=6mm,scale=.82,transform shape]
+    \node[decision] (p) {Misma población};
+    \node[datum,right=1.2cm of p,yshift=1cm] (a) {Muestra A};
+    \node[datum,right=1.2cm of p] (b) {Muestra B};
+    \node[datum,right=1.2cm of p,yshift=-1cm] (c) {Muestra C};
+    \node[process,right=of a] (ea) {$\widehat p_A$};
+    \node[process,right=of b] (eb) {$\widehat p_B$};
+    \node[process,right=of c] (ec) {$\widehat p_C$};
+    \draw[flow] (p)--(a); \draw[flow] (p)--(b); \draw[flow] (p)--(c);
+    \draw[flow] (a)--(ea); \draw[flow] (b)--(eb); \draw[flow] (c)--(ec);
+  \end{tikzpicture}
+  \explicacion{Las ramas representan repeticiones hipotéticas del mismo diseño. La dispersión entre resultados expresa variabilidad muestral, no un error de programación.}
+  \raggedright Cuanto menor sea la muestra o más raro sea el evento, más visibles pueden ser esas diferencias relativas.
+\end{frame}
+
+% 10
+\begin{frame}{Sesgo y variabilidad: dos problemas distintos}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.2\textwidth} X X}
+    \toprule Propiedad & Pregunta & Ejemplo \\ \midrule
+    Sesgo & ¿El procedimiento apunta sistemáticamente fuera del objetivo? & Solo se visitan sitios accesibles \\
+    Variabilidad & ¿Cuánto cambia el resultado entre muestras? & Hay pocos resultados por sitio \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.5em}
+  \begin{columns}[T]
+    \column{.48\textwidth}\centering
+      \begin{tikzpicture}[scale=.55]
+        \draw[UAPGray] (0,0) circle (1.4); \draw[UAPGray] (-1.4,0)--(1.4,0); \draw[UAPGray] (0,-1.4)--(0,1.4);
+        \foreach \x/\y in {.65/.5,.8/.45,.72/.63,.9/.6,.58/.7} \fill[UAPRed] (\x,\y) circle (2.5pt);
+      \end{tikzpicture}\par Baja variabilidad, alto sesgo
+    \column{.48\textwidth}\centering
+      \begin{tikzpicture}[scale=.55]
+        \draw[UAPGray] (0,0) circle (1.4); \draw[UAPGray] (-1.4,0)--(1.4,0); \draw[UAPGray] (0,-1.4)--(0,1.4);
+        \foreach \x/\y in {-1/.2,.7/.8,.2/-1,-.6/-.5,.8/-.3} \fill[UAPTeal] (\x,\y) circle (2.5pt);
+      \end{tikzpicture}\par Bajo sesgo, alta variabilidad
+  \end{columns}
+  \explicacion{La posición media representa sesgo; la separación entre puntos representa variabilidad. Son dimensiones diferentes.}
+  \begin{alertblock}{Advertencia crítica}Una muestra enorme puede producir una cifra muy estable y, al mismo tiempo, estar sistemáticamente sesgada.\end{alertblock}
+\end{frame}
+
+% 11
+\begin{frame}{Cobertura, selección y representatividad}
+  \small
+  La \concepto{cobertura} indica qué parte de la población pudo entrar en el registro. La \concepto{selección} describe cómo unas unidades terminaron observadas y otras no.
+  \vspace{.4em}
+  \begin{tabularx}{\textwidth}{X X}
+    \toprule Mecanismo & Posible efecto \\ \midrule
+    Horarios operativos limitados & Algunas franjas quedan subrepresentadas \\
+    Remuestreo tras una detección & Los positivos reciben más observaciones \\
+    Sitios de acceso sencillo & Cambia la composición espacial \\
+    Valores inválidos excluidos & Quedan menos casos válidos y la proporción puede cambiar \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.35em}
+
+  Excluir un registro no solo reduce el denominador. Si los inválidos se concentran en ciertos sitios, periodos o condiciones, la proporción calculada también puede quedar sesgada.
+  \explicacion{La representatividad depende del proceso que produjo los datos, no únicamente del número de filas disponibles.}
+\end{frame}
+
+% 12
+\begin{frame}{Tipos de muestreo}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.2\textwidth} X}
+    \toprule Diseño & Regla básica ampliada \\ \midrule
+    Aleatorio simple & Construir un marco completo y sortear $n$ unidades; cada conjunto posible de tamaño $n$ debe tener la misma probabilidad de selección. \\[.6em]
+    Estratificado & Dividir la población en grupos exhaustivos y mutuamente excluyentes; sortear dentro de cada grupo y combinar los resultados respetando sus pesos. \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.8em}
+
+  En ambos diseños la selección se realiza al azar y parte de un marco definido. La diferencia es que el aleatorio simple realiza un único sorteo sobre toda la población, mientras que el estratificado realiza sorteos separados para asegurar representación de cada grupo.
+  \explicacion{El diseño no consiste en tomar filas al azar de una tabla ya disponible: define las probabilidades de inclusión y las ponderaciones necesarias para representar la población.}
+\end{frame}
+
+% 13
+\begin{frame}{Muestreo aleatorio simple}
+  \small
+  En un muestreo aleatorio simple de tamaño $n$, cada conjunto posible de $n$ unidades tiene la misma probabilidad de ser elegido.
+  \begin{enumerate}
+    \item definir un marco con todas las unidades elegibles;
+    \item aplicar una selección aleatoria reproducible;
+    \item observar las unidades seleccionadas;
+    \item registrar no respuesta o imposibilidad de medición.
+  \end{enumerate}
+  \begin{tikzpicture}[node distance=5mm,scale=.72,transform shape]
+    \node[datum] (m) {Marco}; \node[process,right=of m] (s) {Sorteo};
+    \node[process,right=of s] (o) {Observación}; \node[decision,right=of o] (r) {Registro};
+    \draw[flow] (m)--(s); \draw[flow] (s)--(o); \draw[flow] (o)--(r);
+  \end{tikzpicture}
+  \explicacion{El marco es anterior al sorteo: si una unidad no figura en él, la aleatoriedad no corrige esa ausencia.}
+\end{frame}
+
+% 14
+\begin{frame}{Muestreo estratificado}
+  \small
+  La población se divide en estratos mutuamente excluyentes, como sitio, estación o tipo de muestra, y se seleccionan unidades dentro de cada uno.
+  \par\vspace{.45em}\centering
+  \begin{tikzpicture}[node distance=5mm,scale=.75,transform shape]
+    \node[decision] (p) {Población};
+    \node[datum,right=of p,yshift=.9cm] (a) {Estrato A};
+    \node[datum,right=of p] (b) {Estrato B};
+    \node[datum,right=of p,yshift=-.9cm] (c) {Estrato C};
+    \node[process,right=1.2cm of b] (m) {Muestras por estrato};
+    \node[decision,right=of m] (f) {Combinación ponderada};
+    \draw[flow] (p)--(a); \draw[flow] (p)--(b); \draw[flow] (p)--(c);
+    \draw[flow] (a)--(m); \draw[flow] (b)--(m); \draw[flow] (c)--(m); \draw[flow] (m)--(f);
+  \end{tikzpicture}
+  \explicacion{La separación asegura presencia de grupos; la combinación recupera sus pesos poblacionales cuando las fracciones de muestreo difieren.}
+  \raggedright Puede mejorar precisión si los estratos son internamente homogéneos y facilita comparaciones con tamaños suficientes.
+\end{frame}
+
+% 15
+\begin{frame}{La muestra como proceso de medición}
+  \footnotesize
+  Una fila observada es el resultado de varias etapas, no una lectura neutral de la realidad.
+  \vspace{.4em}\centering
+  \begin{tikzpicture}[node distance=3mm,scale=.62,transform shape]
+    \node[datum] (u) {Unidad\br elegible}; \node[process,right=of u] (s) {Selección};
+    \node[process,right=of s] (a) {Acceso}; \node[process,right=of a] (m) {Medición};
+    \node[process,right=of m] (r) {Registro}; \node[decision,right=of r] (v) {Validación};
+    \node[datum,right=of v] (n) {Análisis};
+    \draw[flow] (u)--(s); \draw[flow] (s)--(a); \draw[flow] (a)--(m);
+    \draw[flow] (m)--(r); \draw[flow] (r)--(v); \draw[flow] (v)--(n);
+  \end{tikzpicture}
+  \explicacion{Cada bloque puede excluir unidades o alterar valores. Las flechas describen cómo se produce la evidencia que finalmente analizamos.}
+  \vspace{.4em}
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.17\textwidth} X}
+    \toprule Etapa & Pregunta concreta \\ \midrule
+    Selección & ¿Por qué se observó esta unidad? \\
+    Medición & ¿Qué instrumento y límite se usaron? \\
+    Registro & ¿Cómo se codificaron censura y faltantes? \\
+    Validación & ¿Qué reglas determinaron un resultado válido? \\
+    \bottomrule
+  \end{tabularx}
+\end{frame}
+
+% 16
+\begin{frame}{Evento, resultado y espacio muestral}
+  \small
+  Un \concepto{experimento aleatorio} produce uno de varios resultados posibles. El \concepto{espacio muestral} $\Omega$ los reúne y un \concepto{evento} es un subconjunto.
+  \[
+    \Omega=\{\text{no detectado},\ \text{detectado},\ \text{resultado inválido}\}
+  \]
+  \centering
+  \begin{tikzpicture}[scale=.72,transform shape]
+    \draw[UAPNavy,fill=UAPNavy!5,rounded corners] (0,0) rectangle (9,2.1);
+    \draw[UAPTeal,fill=UAPTeal!15] (5.9,1.05) ellipse (1.5 and .7);
+    \node at (.7,1.75) {$\Omega$}; \node at (5.9,1.05) {$D$: detección válida};
+  \end{tikzpicture}
+  \explicacion{El rectángulo contiene todos los resultados previstos; la región $D$ agrupa solo aquellos que cumplen la definición del evento.}
+  \raggedright Definir el evento antes de contar evita modificarlo para acomodar los datos obtenidos.
+\end{frame}
+
+% 17
+\begin{frame}{Probabilidad como proporción de largo plazo}
+  \small
+  Si un procedimiento se repitiera en condiciones comparables, la frecuencia relativa puede aproximarse a una probabilidad:
+  \[
+    P(D)\approx\frac{\text{detecciones válidas}}{\text{muestras válidas}}
+  \]
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.15\textwidth} X}
+    \toprule Valor & Lectura \\ \midrule
+    0 & Evento imposible bajo el modelo \\
+    entre 0 y 1 & Distintos grados de posibilidad \\
+    1 & Evento seguro bajo el modelo \\
+    \bottomrule
+  \end{tabularx}
+  \explicacion{La probabilidad se interpreta dentro de un modelo, una población y una información definidos; no es una propiedad aislada de una etiqueta.}
+\end{frame}
+
+% 18
+\begin{frame}{Probabilidad marginal y complemento}
+  \small
+  La probabilidad \concepto{marginal} considera un evento sin fijar otra condición. Su complemento reúne los resultados en los que no ocurre:
+  \[
+    P(D^c)=1-P(D)
+  \]
+  Si $P(D)=0{,}04$, entonces $P(D^c)=0{,}96$.
+  \vspace{.35em}\centering
+  \begin{tikzpicture}[scale=.8,transform shape]
+    \draw[UAPNavy,fill=UAPTeal!18] (0,0) rectangle (2.1,1.25);
+    \draw[UAPNavy,fill=UAPGold!18] (2.1,0) rectangle (9,1.25);
+    \node at (1.05,.62) {$D$}; \node at (5.55,.62) {$D^c$};
+  \end{tikzpicture}
+  \explicacion{Las dos regiones no se superponen y cubren todos los resultados posibles; aumentar una reduce necesariamente la otra.}
+  \raggedright La categoría ``inválido'' debe resolverse en el universo antes de tratar ``no detectado'' como complemento de ``detectado''.
+\end{frame}
+
+% 19
+\begin{frame}{Probabilidad conjunta}
+  \small
+  La intersección $A\cap B$ contiene resultados donde ocurren ambos eventos. Ejemplo: $A=$ verano y $B=$ detección.
+  \begin{columns}[T]
+    \column{.55\textwidth}
+      \begin{tabularx}{\textwidth}{>{\bfseries}p{.25\textwidth} X}
+        \toprule Cantidad & Pregunta \\ \midrule
+        $P(A)$ & ¿Qué proporción pertenece al verano? \\
+        $P(B)$ & ¿Qué proporción presenta detección? \\
+        $P(A\cap B)$ & ¿Qué proporción cumple ambas? \\
+        \bottomrule
+      \end{tabularx}
+    \column{.4\textwidth}\centering
+      \begin{tikzpicture}[scale=.72]
+        \draw[fill=UAPTeal!18,draw=UAPTeal] (0,0) circle (1.25);
+        \draw[fill=UAPGold!22,draw=UAPGold] (1.45,0) circle (1.25);
+        \node at (-.45,0) {$A$}; \node at (1.9,0) {$B$}; \node at (.72,0) {$A\cap B$};
+      \end{tikzpicture}
+  \end{columns}
+  \explicacion{La zona superpuesta representa casos compartidos; no expresa todavía una probabilidad condicionada.}
+\end{frame}
+
+% 20
+\begin{frame}{Probabilidad condicional}
+  \small
+  La probabilidad condicional restringe el universo a los casos donde ocurrió $B$:
+  \[
+    P(A\mid B)=\frac{P(A\cap B)}{P(B)},\qquad P(B)>0
+  \]
+  Para $P(D\mid V)$, primero conservamos las muestras de verano $V$ y luego calculamos qué proporción tuvo detección $D$.
+  \vspace{.4em}\centering
+  \begin{tikzpicture}[node distance=7mm,scale=.8,transform shape]
+    \node[datum] (t) {Todas las muestras}; \node[process,right=of t] (b) {Filtrar $B$};
+    \node[decision,right=of b] (a) {Medir fracción $A$\br dentro de $B$};
+    \draw[flow] (t)--(b); \draw[flow] (b)--(a);
+  \end{tikzpicture}
+  \explicacion{La barra vertical se lee ``dado que'': modifica el denominador y, por tanto, la pregunta respondida.}
+\end{frame}
+
+% 21
+\begin{frame}{Independencia y asociación}
+  \small
+  Dos eventos son independientes cuando conocer uno no cambia la probabilidad del otro:
+  \[
+    P(A\mid B)=P(A)
+    \qquad\Longleftrightarrow\qquad
+    P(A\cap B)=P(A)P(B)
+  \]
+  Para estudiar si la detección $D$ se relaciona con el verano $V$, comparamos la proporción de detecciones entre todas las muestras, $P(D)$, con la proporción únicamente entre las muestras de verano, $P(D\mid V)$.
+
+  \vspace{.45em}
+  Si ambas probabilidades son iguales, saber que una muestra pertenece al verano no modifica la probabilidad de detección. En datos muestrales esperamos valores aproximados: una diferencia pequeña puede deberse a variabilidad del muestreo.
+
+  \vspace{.45em}
+  Si $P(D\mid V)$ se aparta claramente de $P(D)$, la probabilidad cambia al restringirnos al verano. Esto indica asociación dentro de la población y el periodo definidos.
+  \explicacion{La independencia es una propiedad de la distribución conjunta definida; no significa que las variables carezcan de toda relación física o causal.}
+\end{frame}
+
+% 22
+\begin{frame}{Un error frecuente: invertir la condición}
+  \small
+  \[
+    P(\text{alerta}\mid\text{detección})\neq P(\text{detección}\mid\text{alerta})
+  \]
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.25\textwidth} X}
+    \toprule Expresión & Pregunta \\ \midrule
+    $P(A\mid D)$ & Entre las detecciones, ¿cuántas generan alerta? \\
+    $P(D\mid A)$ & Entre las alertas, ¿cuántas son detecciones? \\
+    \bottomrule
+  \end{tabularx}
+  \explicacion{Cambiar el orden cambia el grupo usado como denominador; por eso las probabilidades no son intercambiables.}
+  \begin{alertblock}{Advertencia crítica}
+    Una alerta sensible puede aparecer en casi todas las detecciones y aun así producir muchas falsas alarmas cuando la detección es rara.
+  \end{alertblock}
+\end{frame}
+
+% 23
+\begin{frame}{Estimaciones y tamaño de muestra}
+  \small
+  Una estimación basada en pocos casos suele cambiar más entre muestras que otra basada en muchos casos comparables.
+  \par\vspace{.45em}
+  \begin{tabular}{lrrr}
+    \toprule Sitio & Detecciones & Muestras & Proporción observada \\ \midrule
+    A & 1 & 2 & 50\% \\
+    B & 40 & 100 & 40\% \\
+    \bottomrule
+  \end{tabular}
+  \vspace{.7em}
+
+  La proporción de A es mayor, pero está sostenida por solo dos observaciones. Una observación adicional podría modificarla drásticamente.
+  \explicacion{La proporción comunica la estimación puntual; el denominador comunica cuánta evidencia la sostiene. Ambas piezas deben leerse juntas.}
+\end{frame}
+
+% 24
+\begin{frame}{Variabilidad muestral de una proporción}
+  \small
+  Bajo ensayos aproximadamente independientes con probabilidad constante:
+  \[
+    SE(\widehat p)\approx\sqrt{\frac{\widehat p(1-\widehat p)}{n}}
+  \]
+  El error estándar disminuye con $n$, pero lo hace con su raíz cuadrada: cuadruplicar la muestra reduce aproximadamente a la mitad esta variabilidad.
+  \par\vspace{.4em}\centering
+  \begin{tikzpicture}[xscale=4.2,yscale=1.15]
+    \draw[->,UAPGray] (0,0)--(1.05,0) node[right] {$\widehat p$};
+    \draw[UAPGold,thick,domain=.05:.95,samples=80] plot (\x,{.75*exp(-18*(\x-.5)^2)});
+    \draw[UAPTeal,thick,domain=.12:.88,samples=80] plot (\x,{1.05*exp(-55*(\x-.5)^2)});
+    \draw[UAPNavy,thick,domain=.25:.75,samples=80] plot (\x,{1.3*exp(-150*(\x-.5)^2)});
+  \end{tikzpicture}
+  \explicacion{Las curvas representan tamaños pequeño, medio y grande: su ancho muestra cuánto cambiaría la estimación entre repeticiones comparables.}
+\end{frame}
+
+% 25
+\begin{frame}{Variabilidad muestral de una media}
+  \small
+  Para observaciones independientes con dispersión finita:
+  \[
+    SE(\bar x)\approx\frac{s}{\sqrt n}
+  \]
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} X}
+    \toprule Componente & Significado \\ \midrule
+    $s$ & Cuánto difieren las observaciones entre sí \\
+    $n$ & Cuántas observaciones independientes sostienen la media \\
+    $SE(\bar x)$ & Cuánto variaría la media entre muestras \\
+    \bottomrule
+  \end{tabularx}
+  \explicacion{La desviación estándar describe datos individuales; el error estándar describe la estabilidad del estimador.}
+  Si varias mediciones pertenecen al mismo sitio o episodio, el número de filas puede exagerar la información independiente.
+\end{frame}
+
+% 26
+\begin{frame}{Bootstrap: evaluar estabilidad}
+  \small
+  El \concepto{bootstrap} aproxima la variabilidad de un estadístico mediante remuestreo con reemplazo.
+  \begin{enumerate}
+    \item tomar una remuestra del mismo tamaño;
+    \item calcular el estadístico de interés;
+    \item repetir muchas veces;
+    \item estudiar la distribución de resultados.
+  \end{enumerate}
+  \centering
+  \begin{tikzpicture}[node distance=5mm,scale=.73,transform shape]
+    \node[datum] (o) {Muestra original}; \node[process,right=of o] (r) {Muchas remuestras};
+    \node[process,right=of r] (e) {Muchos estadísticos}; \node[decision,right=of e] (d) {Distribución bootstrap};
+    \draw[flow] (o)--(r); \draw[flow] (r)--(e); \draw[flow] (e)--(d);
+  \end{tikzpicture}
+  \explicacion{Cada remuestra reutiliza filas y omite otras; la colección aproxima cómo cambiaría el resultado bajo el esquema elegido.}
+  \raggedright El remuestreo debe respetar grupos, tiempo o dependencia cuando la estructura lo requiera.
+\end{frame}
+
+% 27
+\begin{frame}{Precisión no es ausencia de sesgo}
+  \small
+  Un intervalo estrecho expresa poca variabilidad bajo un procedimiento; no demuestra que el procedimiento esté centrado en la cantidad correcta.
+  \par\vspace{.5em}\centering
+  \begin{tikzpicture}[xscale=6,yscale=1.25]
+    \draw[->,UAPGray] (0,0)--(1,0);
+    \draw[UAPTeal,very thick,domain=.35:.7,samples=80] plot (\x,{1.25*exp(-180*(\x-.52)^2)});
+    \draw[UAPRed,very thick] (.76,0)--(.76,1.3) node[above] {parámetro};
+    \node[UAPTeal] at (.42,1.45) {estimaciones precisas};
+  \end{tikzpicture}
+  \explicacion{El ancho de la curva representa precisión y el desplazamiento representa sesgo. Más datos reducen el ancho, no el desplazamiento.}
+  \begin{alertblock}{Advertencia crítica}
+    Aumentar el tamaño de una muestra mal seleccionada puede aumentar la confianza aparente en una respuesta equivocada.
+  \end{alertblock}
+\end{frame}
+
+% 28
+\begin{frame}{Del análisis descriptivo al predictivo}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} X X}
+    \toprule Dimensión & Descriptivo & Predictivo \\ \midrule
+    Objetivo & Resumir casos observados & Estimar casos no observados \\
+    Referencia & Archivo y periodo analizados & Población y horizonte futuros \\
+    Validación & Coherencia y cobertura & Desempeño fuera del ajuste \\
+    Salida & Tabla, gráfico o estadístico & Valor, clase o probabilidad \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.4em}\centering
+  \begin{tikzpicture}[node distance=6mm,scale=.72,transform shape]
+    \node[datum] (h) {Datos históricos}; \node[process,right=of h] (p) {Patrón aprendido};
+    \node[datum,right=of p] (n) {Caso nuevo}; \node[decision,right=of n] (r) {Predicción};
+    \draw[flow] (h)--(p); \draw[flow] (p)--(r); \draw[flow] (n)--(r);
+  \end{tikzpicture}
+  \explicacion{El patrón se construye con el pasado y se aplica a una unidad no usada para producir esa predicción; la evaluación debe imitar ese uso.}
+\end{frame}
+
+% 29
+\begin{frame}{Del análisis predictivo al prescriptivo}
+  \small
+  Una predicción estima qué podría ocurrir. Una prescripción compara qué conviene hacer frente a esa incertidumbre.
+  \par\vspace{.65em}\centering
+  \begin{tikzpicture}[node distance=5mm,scale=.72,transform shape]
+    \node[datum] (e) {Evidencia}; \node[process,right=of e] (p) {Probabilidad};
+    \node[decision,right=of p] (a) {Acciones};
+    \node[decision,above right=.15cm and .55cm of a] (c) {Consecuencias};
+    \node[decision,below right=.15cm and .55cm of a] (r) {Restricciones};
+    \node[datum,right=1.4cm of a] (d) {Decisión};
+    \draw[flow] (e)--(p); \draw[flow] (p)--(a); \draw[flow] (a)--(d);
+    \draw[flow] (c)--(d); \draw[flow] (r)--(d);
+  \end{tikzpicture}
+  \explicacion{La probabilidad resume creencias sobre estados; el bloque de decisión agrega valores y límites operativos para elegir una acción.}
+  \raggedright Dos organizaciones pueden usar la misma probabilidad y elegir acciones distintas si enfrentan costos, capacidades o responsabilidades diferentes.
+\end{frame}
+
+% 30
+\begin{frame}{Estados inciertos y acciones posibles}
+  \small
+  \begin{itemize}
+    \item \concepto{Estados:} condiciones desconocidas al decidir.
+    \item \concepto{Acciones:} alternativas bajo control del decisor.
+    \item \concepto{Consecuencias:} resultados de combinar una acción con un estado.
+    \item \concepto{Información:} evidencia disponible antes de elegir.
+  \end{itemize}
+  \begin{tabular}{lcc}
+    \toprule & Detección & No detección \\ \midrule
+    Revisar & Detección atendida & Revisión innecesaria \\
+    No revisar & Omisión & Recurso conservado \\
+    \bottomrule
+  \end{tabular}
+  \explicacion{Las filas son acciones controlables y las columnas estados inciertos; cada celda describe una consecuencia.}
+\end{frame}
+
+% 31
+\begin{frame}{Costos de aciertos y errores}
+  \small
+  Cuando decidimos revisar o no un sitio, el resultado puede ser acertado o equivocado. Revisar una muestra que efectivamente presenta detección es un acierto, pero revisar una muestra sin detección consume un recurso que pudo destinarse a otro caso.
+  \vspace{.5em}
+
+  No revisar una muestra sin detección es otro acierto, mientras que no revisar una detección real implica una demora o una omisión con consecuencias posibles.
+  \vspace{.5em}
+
+  Los costos de estos resultados no son todos iguales. Pueden representar dinero, tiempo, riesgo, equidad y capacidad perdida para atender otros casos.
+  \explicacion{Un falso positivo y un falso negativo pueden ocurrir con la misma frecuencia y aun así tener importancias muy distintas. Conviene valorar cada error por separado.}
+\end{frame}
+
+% 32
+\begin{frame}{Matriz de decisión}
+  \small
+  Supongamos estos costos didácticos:
+  \begin{center}
+  \begin{tabular}{lrr}
+    \toprule Acción & Detección & No detección \\ \midrule
+    Revisar & 2 & 2 \\
+    No revisar & 20 & 0 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  Revisar cuesta 2 unidades cualquiera sea el estado. No revisar cuesta 20 si existía una detección y 0 en caso contrario.
+  \par\vspace{.4em}\centering
+  \begin{tikzpicture}[node distance=6mm,scale=.75,transform shape]
+    \node[datum] (p) {Probabilidad}; \node[process,right=of p] (c) {Costo de cada celda};
+    \node[decision,right=of c] (e) {Costo esperado\br por acción};
+    \draw[flow] (p)--(c); \draw[flow] (c)--(e);
+  \end{tikzpicture}
+  \explicacion{La probabilidad pondera cada consecuencia; la suma permite comparar acciones en una unidad común.}
+\end{frame}
+
+% 33
+\begin{frame}{Valor esperado de una acción}
+  \small
+  Para una acción $a$, estados $s$ y evidencia $E$:
+  \[
+    EC(a)=\sum_s P(s\mid E)C(a,s)
+  \]
+  Si $P(D\mid E)=0{,}15$:
+  \[
+    EC(\text{revisar})=2
+  \]
+  \[
+    EC(\text{no revisar})=0{,}15(20)+0{,}85(0)=3
+  \]
+  \begin{block}{Resultado}Con estos supuestos, revisar tiene menor costo esperado.\end{block}
+  \explicacion{El cálculo no predice qué ocurrirá en un caso concreto; compara consecuencias promedio bajo probabilidades y costos explícitos.}
+\end{frame}
+
+\end{document}
