@@ -83,7 +83,7 @@
     \item el problema $P=(S,A,T,s_0,G,c)$;
     \item nodo, frontera y conjunto explorado;
     \item control de ciclos y mejores costos;
-    \item BFS, DFS y costo uniforme;
+    \item búsqueda en anchura (\emph{Breadth-First Search}, BFS), búsqueda en profundidad (\emph{Depth-First Search}, DFS) y búsqueda de costo uniforme (\emph{Uniform-Cost Search}, UCS);
     \item garantías condicionadas por representación y costos.
   \end{itemize}
   \begin{block}{Continuidad}
@@ -120,17 +120,23 @@ devolver fracaso
 % 6
 \begin{frame}{Una familia, distintas prioridades}
   \small
-  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth}p{.20\textwidth}X}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{.14\textwidth}>{\raggedright\arraybackslash}p{.27\textwidth}X}
     \toprule
     Estrategia & Prioridad & Pregunta que privilegia \\\midrule
     BFS & profundidad & ¿Cuántos pasos llevo? \\
+    DFS & LIFO; mayor profundidad & ¿Qué rama continúo primero? \\
     UCS & $g(n)$ & ¿Cuánto costó llegar? \\
     Voraz & $h(n)$ & ¿Qué parece más cerca? \\
     A* & $g(n)+h(n)$ & ¿Qué solución total parece más barata? \\
     \bottomrule
   \end{tabularx}
-  \vfill
-  La prioridad no modifica el grafo ni el costo real del camino.
+  \vspace{.5em}
+  \begin{block}{Siglas}
+    \scriptsize
+    \textbf{BFS}: \emph{Breadth-First Search} (búsqueda en anchura).\\
+    \textbf{DFS}: \emph{Depth-First Search} (búsqueda en profundidad).\\
+    \textbf{UCS}: \emph{Uniform-Cost Search} (búsqueda de costo uniforme).
+  \end{block}
 \end{frame}
 
 % 7
@@ -230,6 +236,28 @@ devolver fracaso
 \end{frame}
 
 % 12
+\begin{frame}{Cómo interpretar $g(n)$, $h(n)$ y $f(n)$}
+  \small
+  Para $C$, alcanzado mediante $S\rightarrow A\rightarrow C$:
+  \begin{table}
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.15\textwidth}p{.18\textwidth}X}
+    \toprule
+    Función & Cálculo & Interpretación \\\midrule
+    $g(C)$ & $2+2=4$ & costo exacto del camino recorrido \\
+    $h(C)$ & $3$ & estimación del costo restante hasta $G$ \\
+    $f(C)$ & $4+3=7$ & estimación del costo total pasando por $C$ \\
+    \bottomrule
+  \end{tabularx}
+  \end{table}
+  \begin{itemize}
+    \item $g$ depende del camino; $h$, del estado y del objetivo.
+    \item $f$ evalúa prioridad: no es un costo ya pagado.
+    \item UCS prioriza $g$; voraz, $h$; A*, $f=g+h$.
+  \end{itemize}
+  \centering\concepto{$g$ resume el pasado, $h$ estima el futuro y $f$ combina ambos.}
+\end{frame}
+
+% 13
 \begin{frame}{La unidad debe coincidir}
   Si $g$ está en minutos, $h$ también debe estar en minutos.
   \begin{table}
@@ -247,7 +275,7 @@ devolver fracaso
   \end{alertblock}
 \end{frame}
 
-% 13
+% 14
 \begin{frame}{Dos extremos útiles}
   \begin{columns}[T]
     \column{.47\textwidth}
@@ -269,34 +297,19 @@ devolver fracaso
   \centering\concepto{Buscamos una aproximación barata, informativa y justificable.}
 \end{frame}
 
-% 14
-\begin{frame}{Informativa no significa segura}
-  \begin{tabularx}{\textwidth}{>{\bfseries}p{.28\textwidth}X}
-    \toprule
-    Dimensión & Pregunta \\\midrule
-    Calidad empírica & ¿Reduce expansiones y discrimina alternativas? \\
-    Garantía teórica & ¿Respeta una relación demostrable con $h^*$ y los costos? \\
-    \bottomrule
-  \end{tabularx}
-  \vfill
-  \begin{alertblock}{No alcanza con parecer correcta}
-    Una alta correlación con el costo verdadero no demuestra admisibilidad.
-  \end{alertblock}
-\end{frame}
-
 % 15
-\begin{frame}{Lista de control inicial}
-  Antes de usar $h$, declarar:
-  \begin{enumerate}
-    \item qué costo estima y en qué unidad;
-    \item qué información utiliza;
-    \item por qué vale cero en el objetivo;
-    \item si puede ser negativa;
-    \item cómo se comprobará consistencia;
-    \item cuánto cuesta calcularla.
-  \end{enumerate}
-  \begin{block}{Criterio}
-    Una fórmula intuitiva no es todavía una heurística defendible.
+\begin{frame}{Heurística admisible}
+  Una heurística es admisible si nunca sobreestima:
+  \[
+    \boxed{0\leq h(n)\leq h^*(n)}
+  \]
+  \begin{itemize}
+    \item Es una cota inferior, no una predicción promedio.
+    \item Debe cumplirse para todos los estados relevantes.
+    \item Una sola sobreestimación rompe la garantía general.
+  \end{itemize}
+  \begin{block}{Alcance}
+    Admisibilidad se refiere al costo óptimo restante global.
   \end{block}
 \end{frame}
 
@@ -526,34 +539,47 @@ devolver fracaso
 \end{frame}
 
 % 29
-\begin{frame}{Heurística admisible}
-  Una heurística es admisible si nunca sobreestima:
-  \[
-    \boxed{0\leq h(n)\leq h^*(n)}
-  \]
-  \begin{itemize}
-    \item Es una cota inferior, no una predicción promedio.
-    \item Debe cumplirse para todos los estados relevantes.
-    \item Una sola sobreestimación rompe la garantía general.
-  \end{itemize}
-  \begin{block}{Alcance}
-    Admisibilidad se refiere al costo óptimo restante global.
+\begin{frame}{Ejemplo de heurística admisible}
+  \small
+  En el grafo didáctico podemos calcular el costo óptimo restante $h^*(n)$:
+  \begin{table}
+  \begin{tabular}{crrc}
+    \toprule
+    Estado & $h(n)$ & $h^*(n)$ & Comprobación \\\midrule
+    $S$ & 7 & 7 & $7\leq7$ \\
+    $A$ & 5 & 5 & $5\leq5$ \\
+    $B$ & 7 & 8 & $7\leq8$ \\
+    $C$ & 3 & 3 & $3\leq3$ \\
+    $D$ & 6 & 6 & $6\leq6$ \\
+    $G$ & 0 & 0 & $0\leq0$ \\
+    \bottomrule
+  \end{tabular}
+  \end{table}
+  La heurística puede subestimar y seguir siendo admisible; no necesita coincidir con $h^*$.
+  \vfill
+  \begin{block}{Idea clave}
+    Admisible significa no sobreestimar, no acertar exactamente.
   \end{block}
 \end{frame}
 
 % 30
 \begin{frame}{Intuición de optimalidad}
-  Para un nodo sobre un camino óptimo:
+  \small
+  Sea $C^*$ el costo de la solución óptima. Para un nodo $n$ sobre un camino óptimo, la admisibilidad implica:
   \[
-    f(n)=g(n)+h(n)\leq C^*
+    f(n)=g(n)+h(n)\leq g(n)+h^*(n)=C^*
   \]
-  Para una solución subóptima de costo $C>C^*$:
+  En una meta, $h(G)=0$. Para una solución subóptima de costo $C>C^*$:
   \[
     f(G)=g(G)=C>C^*
   \]
-  \begin{block}{Lectura}
-    La frontera conserva antes algún candidato compatible con costo óptimo, siempre que se respeten las demás condiciones de A*.
+  \begin{block}{Implicancia}
+    Mientras la frontera conserve un nodo del camino óptimo con $f(n)\leq C^*$, A* lo extraerá antes que una meta subóptima con $f(G)>C^*$.
   \end{block}
+  \begin{exampleblock}{Ejemplo}
+    Si $C^*=7$ y aparece una meta de costo 9, un candidato óptimo con $f\leq7$ tiene prioridad sobre esa meta.
+  \end{exampleblock}
+  \scriptsize Esta conclusión requiere comprobar la meta al extraerla y respetar las demás condiciones de A*.
 \end{frame}
 
 % 31
@@ -639,10 +665,11 @@ devolver fracaso
 % 36
 \begin{frame}{Comparación de estrategias}
   \small
-  \begin{tabularx}{\textwidth}{>{\bfseries}p{.17\textwidth}p{.18\textwidth}p{.22\textwidth}X}
+  \begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{.14\textwidth}>{\raggedright\arraybackslash}p{.25\textwidth}>{\raggedright\arraybackslash}p{.18\textwidth}X}
     \toprule
     Estrategia & Prioridad & Óptima & Riesgo principal \\\midrule
     BFS & profundidad & costos iguales* & memoria \\
+    DFS & LIFO; mayor profundidad & no & ramas profundas y ciclos \\
     UCS & $g$ & sí* & expansión amplia \\
     Voraz & $h$ & no & solución cara \\
     A* & $g+h$ & sí* & memoria y supuestos \\
@@ -652,72 +679,5 @@ devolver fracaso
   {\scriptsize\alert{* Bajo ramificación finita, costo mínimo positivo cuando corresponda, prueba correcta del objetivo, repetidos y propiedad heurística declarada.}}
 \end{frame}
 
-% 37
-\begin{frame}{MOV-02: movilidad como grafo OD}
-  \small
-  Esta es una abstracción distinta de la reasignación de flota: se buscan caminos sobre conectividad OD agregada.
-  \vspace{.4em}
-  \begin{columns}[T]
-    \column{.49\textwidth}
-      \begin{block}{Representación}
-        \begin{itemize}
-          \item Nodo: zona TLC.
-          \item Arista $i\rightarrow j$: suficientes viajes reportados.
-          \item Costo: duración o distancia mediana.
-          \item Referencia: UCS sobre la misma instancia.
-        \end{itemize}
-      \end{block}
-    \column{.47\textwidth}
-      \begin{block}{Heurística candidata}
-        Separación geográfica con escala y unidad compatibles, auditada arista por arista.
-      \end{block}
-      \begin{alertblock}{Límite}
-        El camino no es una ruta vial ni una trayectoria observada completa.
-      \end{alertblock}
-  \end{columns}
-\end{frame}
-
-% 38
-\begin{frame}{Actividad: definir y probar una heurística}
-  \small
-  En equipos:
-  \begin{enumerate}
-    \item fijar origen, objetivo, costos y desempate;
-    \item ejecutar UCS como referencia;
-    \item proponer $h$ en la misma unidad;
-    \item comprobar $h(G)=0$, no negatividad y consistencia;
-    \item ejecutar A* bajo idénticas condiciones;
-    \item comparar costo, camino, generados, expandidos y frontera máxima;
-    \item explicar qué ocurre con $h=0$.
-  \end{enumerate}
-  \begin{block}{Producto}
-    Definición y prueba de la heurística, sin resultados inventados.
-  \end{block}
-\end{frame}
-
-% 39
-\begin{frame}{Síntesis y continuidad}
-  \small
-  \begin{columns}[T]
-    \column{.58\textwidth}
-      \begin{block}{Ideas centrales}
-        \begin{itemize}
-          \item Voraz usa $h$; A* combina $g+h$.
-          \item Admisibilidad es global; consistencia se audita localmente.
-          \item A* necesita implementación y supuestos correctos.
-          \item Menos expansiones no significa menor costo.
-          \item $h$ comparte unidad y semántica con el costo.
-        \end{itemize}
-      \end{block}
-    \column{.38\textwidth}
-      \begin{block}{Lectura}
-        Capítulo 7, §7.3\\[.4em]
-        Capítulo 6, §6.4\\[.4em]
-        Actividad MOV-02
-      \end{block}
-  \end{columns}
-  \vfill
-  \centering\Large\concepto{Una heurística útil también debe ser auditable.}
-\end{frame}
 
 \end{document}

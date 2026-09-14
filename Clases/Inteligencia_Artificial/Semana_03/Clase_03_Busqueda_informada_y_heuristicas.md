@@ -37,7 +37,7 @@ La clase anterior dejó establecidos:
 - problema $P=(S,A,T,s_0,G,c)$;
 - nodo, frontera y conjunto explorado;
 - control de ciclos y mejores costos;
-- BFS, DFS y costo uniforme;
+- búsqueda en anchura (*Breadth-First Search*, BFS), búsqueda en profundidad (*Depth-First Search*, DFS) y búsqueda de costo uniforme (*Uniform-Cost Search*, UCS);
 - garantías condicionadas por representación y costos.
 
 **Continuidad:** UCS ya ordena por costo recorrido; ahora agregaremos una estimación del costo restante.
@@ -78,11 +78,12 @@ La estrategia cambia al definir la **prioridad** de la frontera.
 | Estrategia | Prioridad | Pregunta que privilegia |
 |---|---:|---|
 | BFS | profundidad | ¿cuántos pasos llevo? |
+| DFS | orden LIFO; mayor profundidad | ¿qué rama continúo primero? |
 | UCS | $g(n)$ | ¿cuánto costó llegar? |
 | Voraz | $h(n)$ | ¿qué parece más cerca? |
 | A* | $g(n)+h(n)$ | ¿qué solución total parece más barata? |
 
-La prioridad no modifica el grafo ni el costo real del camino.
+**Siglas:** BFS significa *Breadth-First Search* (búsqueda en anchura), DFS significa *Depth-First Search* (búsqueda en profundidad) y UCS significa *Uniform-Cost Search* (búsqueda de costo uniforme).
 
 ---
 
@@ -164,6 +165,26 @@ $f$ estima el costo total de una solución que pasa por $n$.
 
 ---
 
+# Cómo interpretar g(n), h(n) y f(n)
+
+Para el nodo $C$, alcanzado mediante $S\rightarrow A\rightarrow C$:
+
+| Función | Cálculo | Interpretación |
+|---|---:|---|
+| $g(C)$ | $2+2=4$ | costo exacto del camino recorrido |
+| $h(C)$ | $3$ | estimación del costo restante hasta $G$ |
+| $f(C)$ | $4+3=7$ | estimación del costo total pasando por $C$ |
+
+- $g(n)$ depende del camino usado para alcanzar el estado.
+- $h(n)$ depende del estado y del objetivo.
+- $f(n)$ es una función de evaluación, no un costo ya pagado.
+
+**UCS prioriza $g$; voraz prioriza $h$; A* prioriza $f=g+h$.**
+
+> $g$ resume el pasado, $h$ estima el futuro y $f$ combina ambos para ordenar la frontera.
+
+---
+
 # La unidad debe coincidir
 
 Si $g$ está en minutos, $h$ también debe estar en minutos.
@@ -196,32 +217,17 @@ El diseño busca una aproximación barata, informativa y justificable.
 
 ---
 
-# Informativa no significa segura
+# Heurística admisible
 
-Una heurística puede evaluarse en dos dimensiones:
+Una heurística es admisible si nunca sobreestima:
 
-| Propiedad | Pregunta |
-|---|---|
-| Calidad empírica | ¿reduce expansiones y discrimina alternativas? |
-| Garantía teórica | ¿respeta una relación demostrable con $h^*$ y los costos? |
+$$0\leq h(n)\leq h^*(n)$$
 
-Una alta correlación con el costo verdadero no demuestra admisibilidad.
+- Es una cota inferior, no una predicción promedio.
+- Debe cumplirse para todos los estados relevantes.
+- Una sola sobreestimación rompe la garantía general.
 
----
-
-# Lista de control inicial
-
-Antes de usar $h$, declarar:
-
-1. qué costo estima;
-2. su unidad;
-3. qué información utiliza;
-4. por qué vale cero en el objetivo;
-5. si puede ser negativa;
-6. cómo se comprobará consistencia;
-7. cuánto cuesta calcularla.
-
-Una fórmula intuitiva no es todavía una heurística defendible.
+Admisibilidad se refiere al costo óptimo restante global.
 
 ---
 
@@ -412,31 +418,40 @@ El nombre del algoritmo no sustituye estas condiciones.
 
 ---
 
-# Heurística admisible
+# Ejemplo de heurística admisible
 
-Una heurística es admisible si nunca sobreestima:
+En el grafo didáctico podemos calcular el costo óptimo restante $h^*(n)$:
 
-$$0\leq h(n)\leq h^*(n)$$
+| Estado | $h(n)$ | $h^*(n)$ | Comprobación |
+|---|---:|---:|---|
+| $S$ | 7 | 7 | $7\leq7$ |
+| $A$ | 5 | 5 | $5\leq5$ |
+| $B$ | 7 | 8 | $7\leq8$ |
+| $C$ | 3 | 3 | $3\leq3$ |
+| $D$ | 6 | 6 | $6\leq6$ |
+| $G$ | 0 | 0 | $0\leq0$ |
 
-- Es una cota inferior, no una predicción promedio.
-- Debe cumplirse para todos los estados relevantes.
-- Una sola sobreestimación rompe la garantía general.
+La heurística puede subestimar y seguir siendo admisible: no necesita coincidir con $h^*$. Una sola sobreestimación impediría afirmar admisibilidad general.
 
-Admisibilidad se refiere al costo óptimo restante global.
+> Admisible significa no sobreestimar, no acertar exactamente.
 
 ---
 
 # Intuición de optimalidad
 
-Para un nodo sobre un camino óptimo:
+Sea $C^*$ el costo de la solución óptima. Para un nodo $n$ sobre un camino óptimo, la admisibilidad implica:
 
-$$f(n)=g(n)+h(n)\leq C^*$$
+$$f(n)=g(n)+h(n)\leq g(n)+h^*(n)=C^*$$
 
-Para una solución subóptima de costo $C>C^*$:
+En una meta, $h(G)=0$. Por eso, para una solución subóptima de costo $C>C^*$:
 
 $$f(G)=g(G)=C>C^*$$
 
-La frontera conserva antes algún candidato compatible con costo óptimo, siempre que se respeten las demás condiciones de A*.
+**Implicancia:** mientras la frontera conserve un nodo del camino óptimo con $f(n)\leq C^*$, A* lo extraerá antes que una meta subóptima con $f(G)>C^*$.
+
+**Ejemplo:** si $C^*=7$ y aparece una meta de costo 9, un candidato óptimo con $f\leq7$ tiene prioridad sobre esa meta.
+
+Esta conclusión requiere comprobar la meta al extraerla y respetar las demás condiciones de A*.
 
 ---
 
@@ -517,55 +532,9 @@ Evaluar sobre las mismas instancias:
 | Estrategia | Prioridad | Óptima | Riesgo principal |
 |---|---:|---|---|
 | BFS | profundidad | costos iguales* | memoria |
+| DFS | LIFO; mayor profundidad | no | ramas profundas y ciclos |
 | UCS | $g$ | sí* | expansión amplia |
 | Voraz | $h$ | no | solución cara |
 | A* | $g+h$ | sí* | memoria y supuestos |
 
 `*` Bajo ramificación finita, costo mínimo positivo cuando corresponda, prueba correcta del objetivo, tratamiento de repetidos y propiedad heurística declarada.
-
----
-
-# MOV-02: movilidad como grafo OD
-
-Esta es una abstracción distinta del problema de reasignación de flota: aquí se buscan caminos sobre conectividad OD agregada.
-
-- Nodo: zona TLC.
-- Arista $i\rightarrow j$: suficientes viajes reportados de $i$ hacia $j$.
-- Costo: duración mediana o distancia mediana, con una sola unidad.
-- Objetivo: encontrar un camino en la red agregada de zonas.
-- Referencia: UCS sobre el mismo grafo e instancia.
-- Heurística: candidata geográfica auditada arista por arista.
-
-El resultado no es una ruta vial calle por calle ni una trayectoria observada completa.
-
----
-
-# Actividad: definir y probar una heurística
-
-En equipos:
-
-1. fijar origen, objetivo, costos y desempate;
-2. ejecutar UCS como referencia;
-3. proponer $h$ en la misma unidad;
-4. comprobar $h(G)=0$, no negatividad y consistencia;
-5. ejecutar A* bajo idénticas condiciones;
-6. comparar costo, camino, generados, expandidos y frontera máxima;
-7. explicar qué ocurre con $h=0$.
-
-**Producto:** definición y prueba de la heurística, sin resultados inventados.
-
----
-
-# Síntesis y continuidad
-
-## Ideas centrales
-
-- Voraz usa $h$; A* combina $g+h$.
-- Admisibilidad es global; consistencia se audita localmente.
-- A* necesita implementación y supuestos correctos.
-- Menos expansiones no significa un camino de menor costo.
-- Una heurística debe compartir unidad y semántica con el costo.
-
-## Lectura
-
-Capítulo 7, §7.3 · Capítulo 6, §6.4 · Actividad MOV-02.
