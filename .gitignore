@@ -1,7 +1,15 @@
-# Archivos de consigna
+# Archivos de consigna: ignorar copias locales por defecto
 Consigna_*.pdf
+
+# Exceptuar exclusivamente las consignas oficiales subidas por la catedra
+!Clases/Data_Science/Semana_03/Consigna_Trabajo_Practico_Exploracion_de_dos_variables.pdf
+!Clases/Inteligencia_Artificial/Semana_03/Consigna_Trabajo_Practico_Busqueda_Voraz_y_A_estrella.pdf
 
 # Configuracion y reglas locales de Antigravity
 .agents/
 .agent/
 Clases/Data_Science/Semana_02/RESUMEN.md
+
+# Apuntes personales locales
+*APUNTES*.md
+*apunte*.md
