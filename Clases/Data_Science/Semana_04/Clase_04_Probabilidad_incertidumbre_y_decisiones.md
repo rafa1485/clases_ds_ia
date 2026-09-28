@@ -385,6 +385,22 @@ La proporción de A es mayor, pero está sostenida por solo dos observaciones. U
 
 ---
 
+# Ejemplo numérico: el denominador importa
+
+Dos sitios parten de proporciones observadas similares, pero con tamaños muy distintos:
+
+| Sitio | Situación inicial | Nueva muestra | Proporción resultante |
+|---|---:|---|---:|
+| A | $1/2=50\%$ | sin detección | $1/3=33{,}3\%$ |
+| B | $40/100=40\%$ | sin detección | $40/101=39{,}6\%$ |
+
+- En A, una observación cambia la estimación en $16{,}7$ puntos porcentuales.
+- En B, la misma clase de observación la cambia en apenas $0{,}4$ puntos.
+
+**Resultado:** informar numerador y denominador permite distinguir una proporción inestable de otra sostenida por más evidencia.
+
+---
+
 # Variabilidad muestral de una proporción
 
 Bajo ensayos aproximadamente independientes con probabilidad constante, el error estándar estimado de una proporción es:
@@ -398,6 +414,24 @@ El error estándar disminuye cuando aumenta $n$, pero lo hace con la raíz cuadr
 **Diagrama:** distribuciones de $\widehat p$ para tamaños pequeño, medio y grande, centradas en el mismo valor y progresivamente más estrechas.
 
 *El ancho representa cuánto cambiaría la estimación entre repeticiones comparables; no representa variabilidad entre individuos.*
+
+---
+
+# Ejemplo numérico: precisión y decisión
+
+En un sitio se observa $\widehat p=0{,}20$. Si la proporción se mantiene al ampliar la muestra:
+
+| $n$ | Error estándar | Rango aproximado $\widehat p\pm2SE$ |
+|---:|---:|---:|
+| 100 | $\sqrt{0{,}20(0{,}80)/100}=0{,}04$ | $[0{,}12;\,0{,}28]$ |
+| 400 | $\sqrt{0{,}20(0{,}80)/400}=0{,}02$ | $[0{,}16;\,0{,}24]$ |
+
+**Ejemplo con una regla supuesta: priorizar el sitio si la proporción supera el 15 %:**
+
+- Con $n=100$, el rango va del 12 % al 28 %: otra muestra comparable podría ubicar la estimación por debajo o por encima del umbral y cambiar la decisión.
+- Con $n=400$, todo el rango supera el 15 %, por lo que la decisión de priorizar es más estable.
+
+**Resultado:** reducir el error estándar a la mitad produce una estimación más precisa y una decisión más estable frente a fluctuaciones entre muestras comparables.
 
 ---
 
@@ -419,6 +453,22 @@ Si varias mediciones provienen del mismo sitio o episodio, el número de filas p
 
 ---
 
+# Ejemplo numérico: estabilidad de una media
+
+La concentración media observada es $18$ mg/L y la desviación estándar es $s=5$ mg/L.
+
+| $n$ | Cálculo | Error estándar |
+|---:|---:|---:|
+| 25 | $5/\sqrt{25}$ | $1$ mg/L |
+| 100 | $5/\sqrt{100}$ | $0{,}5$ mg/L |
+
+- Las mediciones individuales conservan una dispersión de $5$ mg/L.
+- La media calculada con $100$ observaciones presenta la mitad del error estándar que la media calculada con $25$.
+
+**Uso práctico:** una media más estable permite comparar periodos o sitios con menor sensibilidad a qué observaciones integraron la muestra.
+
+---
+
 # Bootstrap: evaluar estabilidad
 
 El bootstrap aproxima la variabilidad de un estadístico mediante remuestreo con reemplazo:
@@ -433,6 +483,23 @@ El bootstrap aproxima la variabilidad de un estadístico mediante remuestreo con
 *Cada remuestra reutiliza filas y puede omitir otras. La colección de estadísticas aproxima cómo cambiaría el resultado bajo el esquema de remuestreo elegido.*
 
 Puede aplicarse a medianas o diferencias, pero debe respetar grupos, tiempo o dependencia cuando la estructura lo requiera.
+
+---
+
+# Ejemplo numérico: bootstrap de una mediana
+
+Para la muestra original $[8,10,12,14]$, la mediana es $11$.
+
+| Remuestra con reemplazo | Mediana |
+|---|---:|
+| $[8,8,12,14]$ | $10$ |
+| $[10,10,12,14]$ | $11$ |
+| $[8,12,14,14]$ | $13$ |
+| $[8,10,10,12]$ | $10$ |
+
+**Lectura:** las medianas cambian entre $10$ y $13$. Al repetir el remuestreo muchas veces, su distribución muestra cuán estable es la mediana observada.
+
+**Aplicación:** el mismo procedimiento permite evaluar estadísticas cuya variabilidad es difícil de resumir con una fórmula simple.
 
 ---
 

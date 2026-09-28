@@ -1,0 +1,905 @@
+% Compilar desde este directorio con:
+% pdflatex Clase_04_Incertidumbre_en_agentes_inteligentes.tex
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric}
+
+\definecolor{UAPNavy}{HTML}{17324D}
+\definecolor{UAPTeal}{HTML}{007F82}
+\definecolor{UAPGold}{HTML}{E2A33A}
+\definecolor{UAPLight}{HTML}{F3F6F8}
+\definecolor{UAPGray}{HTML}{536471}
+\definecolor{UAPRed}{HTML}{A94343}
+
+\tikzset{
+  flow/.style={-{Stealth[length=2.2mm]},thick,draw=UAPNavy},
+  return/.style={-{Stealth[length=2mm]},thick,dashed,draw=UAPGray},
+  datum/.style={draw=UAPGold,fill=UAPGold!16,rounded corners=2pt,align=center,minimum height=8mm,text=UAPNavy},
+  process/.style={draw=UAPTeal,fill=UAPTeal!12,rounded corners=3pt,very thick,align=center,minimum height=10mm,text=UAPNavy},
+  decision/.style={draw=UAPNavy,fill=UAPNavy!9,rounded corners=3pt,very thick,align=center,minimum height=10mm,text=UAPNavy},
+  card/.style={draw=UAPTeal,fill=UAPLight,rounded corners=3pt,align=center,minimum height=11mm,text=UAPNavy},
+  warning/.style={draw=UAPRed,fill=UAPRed!7,rounded corners=3pt,align=left},
+  cell/.style={draw=UAPNavy,fill=white,minimum size=11mm,align=center,font=\bfseries,text=UAPNavy},
+  hid/.style={cell,draw=UAPGold,fill=UAPGold!20,text=UAPNavy},
+  go/.style={cell,draw=UAPTeal,fill=UAPTeal!15,text=UAPNavy}
+}
+
+\usetheme{Boadilla}
+\usecolortheme{default}
+\setbeamercolor{normal text}{fg=UAPNavy,bg=white}
+\setbeamercolor{structure}{fg=UAPTeal}
+\setbeamercolor{frametitle}{fg=white,bg=UAPNavy}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=UAPGold}
+\setbeamercolor{block title}{fg=white,bg=UAPTeal}
+\setbeamercolor{block body}{fg=UAPNavy,bg=UAPLight}
+\setbeamercolor{alertblock title}{fg=white,bg=UAPRed}
+\setbeamercolor{alertblock body}{fg=UAPNavy,bg=UAPRed!7}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{UAPGold}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{UAPTeal}$\bullet$}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1em]{author in head/foot}%
+      \color{white}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1em plus1fil]{date in head/foot}%
+      \color{UAPGray}\hfill Semana 4 \enspace | \enspace \insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+\newcommand{\concepto}[1]{\textcolor{UAPTeal}{\textbf{#1}}}
+\newcommand{\br}{\\}
+\newcommand{\explicacion}[1]{\par\vspace{.25em}{\scriptsize\color{UAPGray}\textit{#1}\par}}
+\newcommand{\pregunta}[1]{\begin{block}{Pregunta clave}#1\end{block}}
+
+\title[IA · Clase 4]{Incertidumbre en agentes inteligentes}
+\subtitle{De la observación imperfecta a la acción}
+\author{Curso de Inteligencia Artificial}
+\institute{Semana 4 · Clase 4}
+\date{}
+
+\begin{document}
+
+% 1
+\begin{frame}[plain]
+  \begin{beamercolorbox}[wd=\paperwidth,ht=\paperheight,sep=2em]{frametitle}
+    \vfill
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\Huge\inserttitle\par}
+    \vspace{.45em}
+    {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\Large\insertsubtitle\par}
+    \vspace{1.1em}
+    \begin{tikzpicture}[node distance=4mm,scale=.72,transform shape,every node/.style={text=UAPNavy}]
+      \node[datum] (m) {Mundo\br real};
+      \node[process,right=of m] (o) {Observación};
+      \node[datum,right=of o] (c) {Creencia};
+      \node[decision,right=of c] (d) {Acción};
+      \node[datum,right=of d] (q) {Consecuencia};
+      \draw[flow] (m)--(o); \draw[flow] (o)--(c); \draw[flow] (c)--(d); \draw[flow] (d)--(q);
+      \draw[return] (q.south) to[out=-90,in=-90] node[below,font=\scriptsize,text=UAPGray]{actualización} (c.south);
+    \end{tikzpicture}\par
+    \vspace{.7em}
+    {\color{white}\small El agente no conoce el mundo: lo percibe, forma una creencia, la actualiza y actúa asumiendo consecuencias.\par}
+    \vfill
+    {\color{UAPGold}\large\insertauthor\par}
+    {\color{white}\insertinstitute\par}
+  \end{beamercolorbox}
+\end{frame}
+
+% 2
+\begin{frame}{Punto de partida}
+  \small
+  En las semanas 1 a 3 construimos agentes que resuelven problemas. La Semana 1 ya reconoció entornos \concepto{parcialmente observables} y \concepto{estocásticos}.
+  \begin{itemize}
+    \item Semana 1: agentes, entornos y racionalidad (observabilidad parcial, estocasticidad).
+    \item Semana 2: representación de estados, acciones, objetivos y restricciones.
+    \item Semana 3: búsqueda ciega e informada sobre un modelo fijo.
+  \end{itemize}
+  Para ejecutar esa búsqueda, las Semanas 2 y 3 adoptaron una \textbf{abstracción determinista}: el estado siempre era conocido con exactitud y cada acción llevaba a un único resultado posible.
+  \begin{block}{Continuidad}
+    Ahora levantamos esa abstracción: el agente \textbf{no observa todo}, sus sensores \textbf{fallan} y las acciones pueden tener \textbf{resultados múltiples}.
+  \end{block}
+\end{frame}
+
+% 3
+\begin{frame}{Propósito y resultados de aprendizaje}
+  \small
+  \textbf{Propósito:} comprender por qué aparece la incertidumbre, cómo se representa y cómo un agente decide sin fingir certeza.
+  \begin{block}{Al finalizar, podremos}
+    \begin{itemize}
+      \item identificar fuentes y tipos de incertidumbre;
+      \item distinguir estado real, percepción y creencia;
+      \item construir una distribución conjunta y marginalizarla;
+      \item actualizar una creencia con el teorema de Bayes;
+      \item comparar acciones mediante costo esperado;
+      \item reconocer cuándo una decisión se vuelve secuencial y qué papel juega una política;
+      \item reconocer cómo se estiman estas probabilidades a partir de datos reales, más allá de una tabla dada.
+    \end{itemize}
+  \end{block}
+  \explicacion{La clase es conceptual y numérica; no se implementan todavía algoritmos de aprendizaje por refuerzo.}
+\end{frame}
+
+% 4
+\begin{frame}{Pregunta de apertura}
+  \small
+  \pregunta{Si un robot no puede saber con certeza si el camino está libre, ¿cómo decide cruzar?}
+  \begin{columns}[T]
+    \column{.60\textwidth}
+      \begin{itemize}
+        \item ¿Qué es exactamente lo que no sabe?
+        \item ¿Qué puede observar y qué puede fallar?
+        \item ¿Qué información tenía antes de observar?
+        \item ¿Qué cuesta equivocarse en cada sentido?
+        \item ¿Cómo cambia su decisión al recibir una señal?
+      \end{itemize}
+    \column{.36\textwidth}
+      \centering
+      \begin{tikzpicture}[node distance=2mm,scale=.78,transform shape]
+        \node[cell] (s) {Inicio};
+        \node[hid,right=of s] (m) {?};
+        \node[go,right=of m] (g) {Meta};
+        \draw[flow] (s)--(m); \draw[flow] (m)--(g);
+      \end{tikzpicture}\par
+      {\scriptsize\color{UAPGray} nuestro caso conductor, desarrollado en detalle más adelante}
+  \end{columns}
+  \explicacion{La incertidumbre no es un defecto del agente: es una propiedad de su relación con el entorno.}
+\end{frame}
+
+% 5
+\begin{frame}{¿Por qué aparece la incertidumbre?}
+  \small
+  Un agente actúa sobre un mundo que no puede conocer por completo. Entre el mundo y la decisión median percepciones, modelos y evidencia, cada uno con pérdidas.
+  \vspace{.4em}
+  \centering
+  \begin{tikzpicture}[node distance=5mm,scale=.78,transform shape]
+    \node[datum] (m) {Mundo\br real};
+    \node[process,right=of m] (o) {Observación};
+    \node[datum,right=of o] (c) {Creencia};
+    \node[decision,right=of c] (a) {Acción};
+    \node[datum,right=of a] (q) {Consecuencia};
+    \draw[flow] (m)--(o); \draw[flow] (o)--(c); \draw[flow] (c)--(a); \draw[flow] (a)--(q);
+    \node[warning,below=9mm of c,text width=64mm,font=\scriptsize] {\textbf{Pérdidas}: lo no observado, el ruido, lo mal modelado y lo que cambiará en el futuro.};
+  \end{tikzpicture}
+  \vspace{.55em}
+  \begin{alertblock}{Idea}
+    Decidir con certeza es un caso especial; lo habitual es decidir con información parcial.
+  \end{alertblock}
+\end{frame}
+
+% 6
+\begin{frame}{Fuentes de incertidumbre}
+  \small
+  \begin{columns}[T]
+    \column{.48\textwidth}
+      \begin{block}{Del lado de la observación}
+        \begin{itemize}
+          \item \textbf{Observabilidad parcial}: el agente no ve todo el estado.
+          \item \textbf{Ruido de sensores}: la lectura no es el estado.
+          \item \textbf{Información faltante o ambigua}.
+          \item \textbf{Datos insuficientes o mal cubiertos}.
+        \end{itemize}
+      \end{block}
+    \column{.48\textwidth}
+      \begin{block}{Del lado del mundo y del modelo}
+        \begin{itemize}
+          \item \textbf{Resultados estocásticos}: una acción, varios efectos posibles.
+          \item \textbf{Estados omitidos}: el modelo simplifica la realidad.
+          \item \textbf{Cambio del entorno}: el futuro difiere del pasado.
+        \end{itemize}
+      \end{block}
+  \end{columns}
+  \vfill
+  \explicacion{Las fuentes se combinan: un sensor ruidoso sobre un mundo cambiante y modelado de forma incompleta.}
+\end{frame}
+
+% 7
+\begin{frame}{Dos tipos fundamentales}
+  \small
+  \begin{columns}[T]
+    \column{.48\textwidth}
+      \begin{block}{Incertidumbre aleatoria}
+        Variabilidad que \textbf{permanece} aun conociendo el modelo exacto.
+        \begin{itemize}
+          \item El resultado de un dado o de un sensor ruidoso.
+          \item El resultado de una acción con efectos múltiples.
+        \end{itemize}
+        \textbf{Respuesta}: reservas, redundancia, políticas robustas.
+      \end{block}
+    \column{.48\textwidth}
+      \begin{block}{Incertidumbre epistémica}
+        Falta de conocimiento \textbf{potencialmente reducible}.
+        \begin{itemize}
+          \item Pocos datos o parámetros imprecisos.
+          \item Modelo incompleto o mal especificado.
+        \end{itemize}
+        \textbf{Respuesta}: más datos pertinentes, mejores mediciones.
+      \end{block}
+  \end{columns}
+  \vfill
+  \alert{La frontera depende del modelo: lo que parece aleatorio puede explicarse al añadir variables.}
+\end{frame}
+
+% 8
+\begin{frame}{Otras distinciones útiles}
+  \scriptsize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.26\textwidth}X}
+    \toprule
+    Tipo & Pregunta que responde y ejemplo \\\midrule
+    Observacional & ¿La medición coincide con el estado? El sensor reporta \texttt{alerta} aunque el camino esté libre. \\
+    Estructural & ¿El modelo incluye lo relevante? Un robot que ignora que el piso puede estar húmedo. \\
+    Distribucional\br (cambio de distribución) & ¿El futuro se parece al pasado? Condiciones de hoy distintas de las históricas. \\
+    Vaguedad & ¿La categoría tiene límites nítidos? ``Cerca'', ``alto'' o ``riesgoso'' no son lo mismo que aleatorio. \\
+    \bottomrule
+  \end{tabularx}
+  \vfill
+  \explicacion{Ninguna etiqueta es universal: clasificar sirve para elegir la respuesta, no para fijar una división metafísica.}
+\end{frame}
+
+% 9
+\begin{frame}{Problemáticas asociadas (I)}
+  \small
+  La incertidumbre no resuelta produce errores de razonamiento:
+  \begin{itemize}
+    \item \concepto{Confundir ``no sé'' con ``no existe''}: la ausencia de dato no prueba ausencia del fenómeno.
+    \item \concepto{Invertir la condición}: $P(\text{alerta}\mid \text{bloqueo}) \neq P(\text{bloqueo}\mid \text{alerta})$.
+    \item \concepto{Ignorar la tasa base}: una señal poco común puede seguir indicando un estado poco probable.
+    \item \concepto{Contar dos veces evidencia dependiente}: dos sensores con una causa común no aportan información independiente.
+  \end{itemize}
+  \vfill
+  \explicacion{Cada error convierte un número correcto en una conclusión equivocada.}
+\end{frame}
+
+% 10
+\begin{frame}{Problemáticas asociadas (II)}
+  \small
+  \begin{itemize}
+    \item \concepto{Falsa precisión}: asignar un número sin respaldo ni análisis de sensibilidad.
+    \item \concepto{Confundir probabilidad con importancia}: un evento raro puede ser gravísimo.
+    \item \concepto{Ocultar incertidumbre del modelo}: presentar una creencia como si fuera un hecho.
+    \item \concepto{Actuar fuera de distribución}: confiar en datos históricos ante condiciones nuevas.
+    \item \concepto{Explorar sin control}: aprender por prueba y error en un entorno donde equivocarse daña.
+  \end{itemize}
+  \vfill
+  \explicacion{El riesgo no está en usar probabilidades, sino en presentarlas como certezas que no son.}
+\end{frame}
+
+% 11
+\begin{frame}{¿Qué podemos hacer?}
+  \small
+  \begin{columns}[T]
+    \column{.48\textwidth}
+      \begin{block}{Reducir y representar}
+        \begin{itemize}
+          \item Obtener información pertinente.
+          \item Modelar estados posibles y sus probabilidades.
+          \item Mantener conjuntos de estados consistentes.
+        \end{itemize}
+      \end{block}
+      \begin{block}{Actualizar}
+        \begin{itemize}
+          \item Incorporar evidencia con Bayes.
+          \item Combinar observaciones sin doble conteo.
+        \end{itemize}
+      \end{block}
+    \column{.48\textwidth}
+      \begin{block}{Decidir y controlar}
+        \begin{itemize}
+          \item Comparar acciones por costo o utilidad esperada.
+          \item Hacer análisis de sensibilidad.
+          \item Elegir políticas robustas ante escenarios.
+        \end{itemize}
+      \end{block}
+      \begin{block}{Limitar el daño}
+        \begin{itemize}
+          \item Abstenerse o pedir intervención humana.
+          \item Aprender por interacción solo si es seguro.
+        \end{itemize}
+      \end{block}
+  \end{columns}
+\end{frame}
+
+% 12
+\begin{frame}{El flujo completo del agente}
+  \small
+  \centering
+  \begin{tikzpicture}[node distance=5mm,scale=.74,transform shape]
+    \node[datum] (m) {Mundo\br real};
+    \node[process,right=of m] (o) {Observación};
+    \node[datum,right=of o] (b) {Creencia\br $P(\text{estado}\mid E)$};
+    \node[decision,right=of b] (a) {Acción};
+    \node[datum,right=of a] (q) {Consecuencia\br y costo};
+    \draw[flow] (m)--(o); \draw[flow] (o)--(b); \draw[flow] (b)--(a); \draw[flow] (a)--(q);
+    \draw[return] (q.south) to[out=-90,in=-90] (b.south);
+  \end{tikzpicture}
+  \vfill
+  \begin{itemize}
+    \item La \concepto{creencia} resume todo lo que el agente sabe del estado.
+    \item La \concepto{acción} se elige comparando consecuencias bajo esa creencia.
+    \item La \concepto{actualización} convierte la observación nueva en creencia nueva.
+  \end{itemize}
+  \explicacion{Esta cadena organiza todo lo que sigue: representación, actualización y decisión.}
+\end{frame}
+
+% 13
+\begin{frame}{Caso conductor: un robot con sensor}
+  \small
+  Un robot avanza por un pasillo de tres celdas y debe llegar a la meta. La celda central puede estar \textbf{libre} o \textbf{bloqueada}; el robot no lo sabe.
+  \vspace{.45em}
+  \centering
+  \begin{tikzpicture}[node distance=3mm]
+    \node[cell] (s) {Inicio};
+    \node[hid,right=of s] (m) {?};
+    \node[go,right=of m] (g) {Meta};
+    \draw[flow] (s)--(m); \draw[flow] (m)--(g);
+    \node[font=\scriptsize,text=UAPGray,above=4mm of m] {estado oculto};
+  \end{tikzpicture}
+  \vfill
+  \begin{itemize}
+    \item Un sensor informa \texttt{alerta} o \texttt{sin alerta} sobre la celda central.
+    \item El sensor es \textbf{imperfecto}: a veces se equivoca.
+    \item El robot elige entre \textbf{cruzar} directo o \textbf{rodear} por un camino más largo.
+  \end{itemize}
+  \explicacion{Este escenario mínimo aísla los conceptos: estado oculto, evidencia ruidosa y decisión bajo costo.}
+\end{frame}
+
+% 14
+\begin{frame}{¿Qué desconoce el robot?}
+  \small
+  El robot conoce su posición y su meta, pero ignora el \concepto{estado real} de la celda central.
+  \begin{block}{Separación fundamental}
+    \begin{itemize}
+      \item \textbf{Estado real}: libre o bloqueada, exista o no quien lo observe.
+      \item \textbf{Percepción}: la lectura del sensor (\texttt{alerta} o \texttt{sin alerta}).
+      \item \textbf{Creencia}: lo que el robot concluye a partir de sus observaciones previas.
+    \end{itemize}
+  \end{block}
+  \alert{El estado no cambia por no observarlo; cambia lo que el agente puede afirmar sobre él.}
+\end{frame}
+
+% 15
+\begin{frame}{Estado real vs percepción}
+  \small
+  La lectura del sensor no es el estado: es una \concepto{proyección ruidosa}.
+  \begin{center}
+  \begin{tabular}{ll}
+    \toprule
+    $B$ & evento ``la celda está bloqueada'' \\
+    $L$ & evento ``la celda está libre'' \\
+    $A$ & lectura ``el sensor informa alerta'' \\
+    $\neg A$ & lectura ``el sensor informa sin alerta'' \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \explicacion{La dirección de la condición cambia la pregunta: $P(A\mid B)$ y $P(A\mid L)$ parten del estado real y describen qué lectura produce el sensor; $P(B\mid A)$ parte de una alerta observada y expresa cuánta probabilidad merece el bloqueo. En $P(A\mid L)$, $A$ sigue significando ``el sensor emite una alerta'': como el estado real es libre, esa alerta es un falso positivo.}
+\end{frame}
+
+% 16
+\begin{frame}{El sensor y la previa}
+  \small
+  Para cuantificar el caso necesitamos dos ingredientes: cómo se comporta el sensor y qué tan probable era el bloqueo antes de mirar. ``Alerta'' es la salida del sensor, no el estado.
+  \begin{columns}[T]
+    \column{.48\textwidth}
+      \begin{block}{El sensor (dado el estado)}
+        \[
+          P(A\mid B)=0{,}90 \qquad P(A\mid L)=0{,}10
+        \]
+        \begin{itemize}
+          \item \textbf{Sensibilidad} $P(A\mid B)$: si está bloqueada, el sensor alerta en 90 de cada 100 casos.
+          \item \textbf{Falsos positivos} $P(A\mid L)$: si está libre, alerta igual en 10 de cada 100; son alertas falsas.
+        \end{itemize}
+      \end{block}
+    \column{.48\textwidth}
+      \begin{block}{La previa (antes de mirar)}
+        \[
+          P(B)=0{,}20 \qquad P(L)=0{,}80
+        \]
+        \begin{itemize}
+          \item Antes de observar, 20 de cada 100 celdas están bloqueadas.
+          \item Esta frecuencia previa condiciona cuánto cambia la creencia.
+        \end{itemize}
+      \end{block}
+  \end{columns}
+  \begin{alertblock}{Valores ilustrativos}
+    $P(B)=0{,}20$, $P(A\mid B)=0{,}90$ y $P(A\mid L)=0{,}10$ se eligen para el ejercicio; en un caso real se estiman con datos o especificaciones del sensor.
+  \end{alertblock}
+\end{frame}
+
+% 17
+\begin{frame}{Cómo se construye la tabla}
+  \small
+  Cada celda de la tabla combina la \concepto{previa} con el comportamiento del sensor:
+  \[
+    P(\text{estado},\text{lectura})=P(\text{estado})\,P(\text{lectura}\mid \text{estado})
+  \]
+  Primero, los complementos del sensor:
+  \[
+    P(\neg A\mid B)=1-0{,}90=0{,}10, \qquad P(\neg A\mid L)=1-0{,}10=0{,}90
+  \]
+  \begin{columns}[T]
+    \column{.48\textwidth}
+      \[
+        P(B,A)=P(B)\,P(A\mid B)=0{,}20(0{,}90)=0{,}18
+      \]
+      \[
+        P(L,A)=P(L)\,P(A\mid L)=0{,}80(0{,}10)=0{,}08
+      \]
+    \column{.48\textwidth}
+      \[
+        P(B,\neg A)=P(B)\,P(\neg A\mid B)=0{,}20(0{,}10)=0{,}02
+      \]
+      \[
+        P(L,\neg A)=P(L)\,P(\neg A\mid L)=0{,}80(0{,}90)=0{,}72
+      \]
+  \end{columns}
+  \explicacion{Cada expresión es una celda de la tabla siguiente: $P(B,A)$ bloqueada \emph{con} alerta (verdadero positivo), $P(B,\neg A)$ bloqueada \emph{sin} alerta (falso negativo), $P(L,A)$ libre \emph{con} alerta (falso positivo) y $P(L,\neg A)$ libre \emph{sin} alerta (verdadero negativo).}
+\end{frame}
+
+% 18
+\begin{frame}{Cómo se interpreta la tabla}
+  \small
+  \begin{center}
+  \begin{tabular}{lrrr}
+    \toprule
+    & $A$ (alerta) & $\neg A$ (sin alerta) & Marginal \\\midrule
+    $B$ (bloqueada) & $0{,}18$ & $0{,}02$ & $0{,}20$ \\
+    $L$ (libre) & $0{,}08$ & $0{,}72$ & $0{,}80$ \\
+    \midrule
+    Marginal & $0{,}26$ & $0{,}74$ & $1{,}00$ \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \begin{itemize}
+    \item \concepto{Filas}: estado real ($B$ bloqueada, $L$ libre).
+    \item \concepto{Columnas interiores}: lectura del sensor ($A$ alerta, $\neg A$ sin alerta).
+    \item \concepto{Celda interior}: probabilidad conjunta $P(\text{estado},\text{lectura})$.
+    \item \concepto{Margen de fila}: previas $P(B)$ y $P(L)$.
+    \item \concepto{Margen de columna}: $P(A)$ y $P(\neg A)$, la probabilidad de cada lectura.
+    \item \concepto{Esquina}: suma total $1$, comprobación de normalización.
+  \end{itemize}
+  \explicacion{$P(B,A)=0{,}18$: probabilidad de que la celda esté bloqueada \emph{y} el sensor informe alerta. Que exista una alerta no demuestra bloqueo: la celda $P(L,A)=0{,}08$ muestra que el sensor también alerta cuando la celda está libre.}
+\end{frame}
+
+% 19
+\begin{frame}{Marginalizar: probabilidad de una lectura}
+  \small
+  La probabilidad de una lectura se obtiene \concepto{marginalizando} el estado:
+  \[
+    P(A)=P(A\mid B)P(B)+P(A\mid L)P(L)
+  \]
+  Con los números del ejemplo:
+  \[
+    P(A)=0{,}90(0{,}20)+0{,}10(0{,}80)=0{,}18+0{,}08=0{,}26
+  \]
+  \[
+    P(\neg A)=0{,}10(0{,}20)+0{,}90(0{,}80)=0{,}02+0{,}72=0{,}74
+  \]
+  \explicacion{Para saber cuán probable es una alerta se suman todos los casos en que el sensor alerta: bloqueada con alerta más libre con alerta, $P(A)=P(B,A)+P(L,A)=0{,}18+0{,}08=0{,}26$.}
+\end{frame}
+
+% 20
+\begin{frame}{Independencia de observaciones}
+  \small
+  Dos observaciones son \concepto{independientes} (dado el estado) cuando cada una aporta información \textbf{nueva}:
+  \[
+    P(A_1,A_2\mid B)=P(A_1\mid B)\,P(A_2\mid B)
+  \]
+  \begin{itemize}
+    \item Si dos sensores comparten una \textbf{causa común} o miden el \textbf{mismo fallo}, multiplicarlos cuenta dos veces la evidencia.
+    \item Asumir independencia cuando no existe produce \concepto{confianza excesiva}.
+  \end{itemize}
+  \begin{block}{En nuestro caso}
+    Si el robot incorporara un segundo sensor, esta sería la condición para combinar ambas lecturas sin sobreestimar la evidencia.
+  \end{block}
+  \explicacion{La independencia es un supuesto que debe justificarse, no una propiedad automática de tener dos mediciones.}
+\end{frame}
+
+% 21
+\begin{frame}{Actualizar creencias: teorema de Bayes}
+  \small
+  La creencia sobre el estado, tras observar la lectura, se actualiza:
+  \[
+    P(B\mid A)=\frac{P(A\mid B)\,P(B)}{P(A)}
+  \]
+  \begin{itemize}
+    \item $P(B)$ \concepto{(previa)}: ¿qué probabilidad tenía el bloqueo antes de observar?
+    \item $P(A\mid B)$ \concepto{(verosimilitud)}: si había bloqueo, ¿qué probabilidad tenía el sensor de alertar?
+    \item $P(A)$ \concepto{(evidencia)}: ¿qué probabilidad había de observar una alerta, cualquiera fuera el estado?
+    \item $P(B\mid A)$ \concepto{(posterior)}: después de observar la alerta, ¿qué probabilidad tiene el bloqueo?
+  \end{itemize}
+  \explicacion{Bayes no decide por nosotros: convierte la observación en una creencia coherente con el modelo.}
+\end{frame}
+
+% 22
+\begin{frame}{Efecto de la tasa base}
+  \small
+  Con una previa $P(B)=0{,}20$:
+  \[
+    P(B\mid A)=\frac{0{,}90(0{,}20)}{0{,}26}\approx0{,}6923
+  \]
+  \begin{block}{Observación crítica}
+    Aunque la sensibilidad es alta, la posterior no es $0{,}90$: una alerta puede venir de una celda bloqueada o de una libre, y la frecuencia previa de cada estado decide cuántas alertas corresponden a bloqueos reales.
+  \end{block}
+  Si la celda bloqueada fuera \textbf{rarísima}, por ejemplo $P(B)=0{,}01$, una alerta apenas elevaría la creencia:
+  \[
+    P(B\mid A)=\frac{0{,}90(0{,}01)}{0{,}90(0{,}01)+0{,}10(0{,}99)}\approx0{,}083
+  \]
+  \explicacion{La misma señal no significa lo mismo en poblaciones con prevalencias distintas.}
+\end{frame}
+
+% 23
+\begin{frame}{Números del ejemplo}
+  \small
+  \begin{center}
+  \begin{tabular}{lll}
+    \toprule
+    Lectura & Posterior $P(B\mid \cdot)$ & Lectura de la creencia \\\midrule
+    $\neg A$ (sin alerta) & $\dfrac{0{,}10(0{,}20)}{0{,}74}\approx0{,}027$ & creencia baja en bloqueo \\
+    $A$ (alerta) & $\dfrac{0{,}90(0{,}20)}{0{,}26}\approx0{,}692$ & creencia alta en bloqueo \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \vfill
+  \begin{itemize}
+    \item Sin alerta, el bloqueo pasa de $0{,}20$ a $0{,}027$.
+    \item Con alerta, el bloqueo pasa de $0{,}20$ a $0{,}692$.
+  \end{itemize}
+  \explicacion{La misma previa produce posteriores opuestas según la observación; ahora falta convertir creencia en acción.}
+\end{frame}
+
+% 24
+\begin{frame}{De la creencia a la acción: matriz de costos}
+  \small
+  La creencia por sí sola no dice qué hacer; hace falta valorar las \concepto{consecuencias}.
+  \begin{center}
+  \begin{tabular}{lrr}
+    \toprule
+    Acción & Bloqueada & Libre \\\midrule
+    Cruzar & 30 & 0 \\
+    Rodear & 8 & 8 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \begin{itemize}
+    \item Cruzar es gratis si la celda está libre, pero cuesta 30 si choca.
+    \item Rodear siempre cuesta 8: es el desvío seguro.
+  \end{itemize}
+  \explicacion{Valores hipotéticos del ejercicio; en un caso real se fijan según daño, tiempo y recursos. Un falso negativo (cruzar con bloqueo) puede costar más que un falso positivo (rodear sin bloqueo); cada error se valora por separado.}
+\end{frame}
+
+% 25
+\begin{frame}{Valor esperado de una acción}
+  \small
+  Usamos $EC$ por \textit{Expected Cost} (\concepto{costo esperado}). Para una acción $a$, evidencia $E$ y posibles estados $s$:
+  \[
+    EC(a\mid E)=\sum_{s}P(s\mid E)\,C(a,s)
+  \]
+  donde $C(a,s)$ es el costo de ejecutar $a$ cuando ocurre $s$.
+  \br
+  En criollo: para cada estado posible $s$ multiplicamos qué tan probable creemos que es ($P(s\mid E)$) por lo que costaría actuar si ese estado fuera el real ($C(a,s)$), y sumamos. El resultado es un promedio de costos ponderado por la creencia: no predice qué va a pasar, mide qué tan cara es la acción \textbf{en promedio}.
+  \explicacion{La evidencia $E$ puede ser una lectura del sensor, pero también puede no haber evidencia todavía. La fórmula es siempre la misma; lo que cambia de un caso a otro es qué creencia $P(s\mid E)$ usamos.}
+\end{frame}
+
+% 26
+\begin{frame}{Decidir sin haber observado nada}
+  \small
+  Antes de leer el sensor no hay evidencia: $E=\varnothing$. En ese caso $P(s\mid E)$ es simplemente la previa $P(s)$, porque todavía no condicionamos en ningún dato.
+  \br
+  Con previa $P(B)=0{,}20$ (y $P(L)=0{,}80$), reemplazando en la fórmula:
+  \[
+    EC(\text{cruzar})=P(B)(30)+P(L)(0)=0{,}20(30)+0{,}80(0)=6
+  \]
+  \[
+    EC(\text{rodear})=P(B)(8)+P(L)(8)=8
+  \]
+  \begin{block}{Resultado}
+    Con la previa, \textbf{cruzar} tiene menor costo esperado ($6<8$).
+  \end{block}
+  \explicacion{Es el mismo $EC(a\mid E)$ de la diapositiva anterior, solo que con $E=\varnothing$: por eso ``sin observar'' no usa otra fórmula, usa la misma con la creencia inicial.}
+\end{frame}
+
+% 27
+\begin{frame}{Decidir después de observar}
+  \small
+  Con alerta, la creencia sube a $P(B\mid A)=0{,}692$:
+  \[
+    EC(\text{cruzar}\mid A)=0{,}692(30)+0{,}308(0)\approx20{,}8
+  \]
+  \[
+    EC(\text{rodear}\mid A)=8
+  \]
+  Con sin alerta, la creencia baja a $P(B\mid \neg A)=0{,}027$:
+  \[
+    EC(\text{cruzar}\mid \neg A)=0{,}027(30)+0{,}973(0)\approx0{,}8
+  \]
+  \begin{block}{Regla resultante}
+    \textbf{Rodear} ante alerta; \textbf{cruzar} ante sin alerta.
+  \end{block}
+  \explicacion{La observación cambió la acción: ahora la decisión es una función de la evidencia, no una elección fija.}
+\end{frame}
+
+% 28
+\begin{frame}{Umbral y sensibilidad}
+  \small
+  Llamemos $p=P(B\mid E)$ a la creencia de bloqueo, con o sin evidencia. Cruzar conviene cuando su costo esperado es menor que rodear:
+  \[
+    p(30)+(1-p)(0)<8 \quad\Longrightarrow\quad p<\frac{8}{30}\approx0{,}267
+  \]
+  \begin{itemize}
+    \item Previa $p=0{,}20<0{,}267$: conviene cruzar sin observar.
+    \item Alerta $p=0{,}692>0{,}267$: conviene rodear.
+    \item Sin alerta $p=0{,}027<0{,}267$: conviene cruzar.
+  \end{itemize}
+  \begin{alertblock}{Análisis de sensibilidad}
+    Si los costos cambian (choque más grave, desvío más barato), el umbral se desplaza y la decisión puede invertirse.
+  \end{alertblock}
+\end{frame}
+
+% 29
+\begin{frame}{Errores frecuentes al decidir}
+  \small
+  \begin{itemize}
+    \item \concepto{Invertir el condicional}: tratar $P(A\mid B)$ como si fuera $P(B\mid A)$.
+    \item \concepto{Ignorar la previa}: usar solo la sensibilidad del sensor.
+    \item \concepto{Confundir creencia con certeza}: ``el sensor dijo alerta'' no es ``está bloqueada''.
+    \item \concepto{Valorar mal los errores}: tratar falso positivo y falso negativo como equivalentes.
+    \item \concepto{Omitir el costo de actuar}: decidir sin sumar el precio de la propia decisión.
+  \end{itemize}
+  \explicacion{La fórmula es corta; construir bien sus componentes es el trabajo real.}
+\end{frame}
+
+% 30
+\begin{frame}{De una decisión a una secuencia}
+  \small
+  Hasta aquí decidimos una sola vez. En un problema real, cada acción \concepto{cambia el estado} y condiciona las decisiones siguientes.
+  \vspace{.4em}
+  \begin{itemize}
+    \item Cruzar coloca al robot en otra celda; rodear consume batería.
+    \item La posición, la batería y el riesgo acumulado forman el \concepto{estado}.
+    \item Ya no basta ``la mejor acción ahora'': importa la mejor \concepto{regla} para cada situación futura.
+  \end{itemize}
+  \begin{block}{Nuevo objeto}
+    Una \textbf{política} indica qué acción tomar en cada estado, anticipando consecuencias futuras.
+  \end{block}
+  \explicacion{La decisión única es el caso especial en que el futuro no depende de la acción presente.}
+\end{frame}
+
+% 31
+\begin{frame}{Política: qué hacer en cada situación}
+  \small
+  Con observabilidad parcial, el agente no conoce el estado oculto: \concepto{decide sobre su creencia} acerca de él, junto con lo que sí conoce (posición, batería).
+  \begin{center}
+  \begin{tabular}{ll}
+    \toprule
+    Situación (posición, batería, creencia) & Acción de la política \\\midrule
+    creencia de bloqueo por debajo del umbral ($<0{,}267$) & cruzar \\
+    creencia por encima del umbral, batería suficiente & rodear \\
+    creencia alta, batería insuficiente para rodear & detenerse / pedir asistencia \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \begin{itemize}
+    \item La política condensa la decisión en una regla por situación.
+    \item Puede ser determinista (siempre la misma acción) o estocástica (con probabilidades).
+  \end{itemize}
+  \explicacion{Una política no es indecisión ni una lista de ocurrencias: es una regla sistemática y auditable.}
+\end{frame}
+
+% 32
+\begin{frame}{Recompensa y exploración}
+  \small
+  Si el agente debe aprender a actuar por interacción, aparece el \concepto{aprendizaje por refuerzo} (RL).
+  \begin{block}{Dos tensiones}
+    \begin{itemize}
+      \item \textbf{Recompensa}: expresa el objetivo, pero puede estar mal diseñada y premiar atajos.
+      \item \textbf{Explorar vs explotar}: probar acciones da información y también costo o riesgo.
+    \end{itemize}
+  \end{block}
+  \begin{itemize}
+    \item Explorar una celda desconocida puede revelar un obstáculo o provocar un choque.
+    \item Explotar siempre lo conocido consolida una creencia quizá equivocada.
+  \end{itemize}
+\end{frame}
+
+% 33
+\begin{frame}{¿Cuándo corresponde RL?}
+  \small
+  RL no es la respuesta a toda incertidumbre. Es apropiado cuando:
+  \begin{itemize}
+    \item hay decisiones \concepto{secuenciales} significativas;
+    \item la acción presente \concepto{modifica} estados y opciones futuras;
+    \item existe \concepto{retroalimentación} repetida y un objetivo medible;
+    \item se puede \concepto{explorar con seguridad} o en simulación.
+  \end{itemize}
+  \vfill
+  \begin{alertblock}{No usar RL cuando}
+    \begin{itemize}
+      \item una regla simple ya resuelve el problema;
+      \item la interacción es escasa, costosa o no ética;
+      \item equivocarse durante el entrenamiento es inaceptable.
+    \end{itemize}
+  \end{alertblock}
+\end{frame}
+
+% 34
+\begin{frame}{Transferencia: el caso de una app de rutas}
+  \small
+  Una app de rutas debe elegir entre un camino \textbf{largo}, siempre disponible, y un camino \textbf{corto} cuyo estado no puede confirmar con certeza: se nutre de las trazas GPS de los celulares que lo cruzan, y por allí pasa tan poca gente que la señal es débil.
+
+  \vspace{.3em}
+  \centering
+  \begin{tikzpicture}[scale=.85,transform shape]
+    \node[cell] (s) {Origen};
+    \node[go,right=50mm of s] (g) {Destino};
+    \draw[flow] (s) to[bend left=25] node[above,font=\scriptsize,align=center,text width=40mm] {camino corto: ¿transitable u obstruido?} (g);
+    \draw[flow] (s) to[bend right=25] node[below,font=\scriptsize] {camino largo: siempre disponible} (g);
+  \end{tikzpicture}
+  \vfill
+  \begin{itemize}
+    \item \textbf{Estado real} $\leftrightarrow$ el paso corto es transitable en auto (aunque sea lento) u obstruido para autos.
+    \item \textbf{Lectura} $\leftrightarrow$ trazas GPS de otros vehículos en ese tramo, en los últimos minutos.
+    \item \textbf{Previa} $\leftrightarrow$ tasa histórica de obstrucción del paso, para esa franja horaria.
+    \item \textbf{Matriz de costos} $\leftrightarrow$ tiempo de viaje esperado, en minutos.
+  \end{itemize}
+  \explicacion{El mismo esquema del robot ---estado, lectura, previa, sensor y costo--- se aplica; lo que cambia es el dominio.}
+\end{frame}
+
+% 35
+\begin{frame}{El sensor y la previa en el cruce}
+  \small
+  Igual que con el robot, hacen falta dos ingredientes: cómo se comporta la evidencia y qué tan probable era la obstrucción antes de mirar.
+  \begin{columns}[T]
+    \column{.48\textwidth}
+      \begin{block}{La evidencia GPS (dado el estado)}
+        \[
+          P(D\mid O)=0{,}95 \qquad P(D\mid T)=0{,}30
+        \]
+        \begin{itemize}
+          \item $D$: la señal es débil (pocas o ninguna traza vehicular reciente en el tramo).
+          \item $P(D\mid T)=0{,}30$: si el camino está transitable, en 3 de cada 10 ventanas la señal es igualmente débil; es una falsa señal de obstrucción.
+        \end{itemize}
+      \end{block}
+    \column{.48\textwidth}
+      \begin{block}{La previa (antes de mirar)}
+        \[
+          P(O)=0{,}30 \qquad P(T)=0{,}70
+        \]
+        \begin{itemize}
+          \item Tasa histórica de obstrucción del paso corto en esa franja horaria.
+          \item $O$: obstruido para autos. $T$: transitable, aunque sea lento.
+        \end{itemize}
+      \end{block}
+  \end{columns}
+  \begin{alertblock}{Diferencia con el robot}
+    Acá la evidencia es menos discriminante: $P(D\mid T)=0{,}30$ no es chico, porque el bajo tránsito propio de la calle también genera poca señal. Valores ilustrativos; en un caso real se estiman con datos históricos del propio sistema.
+  \end{alertblock}
+\end{frame}
+
+% 36
+\begin{frame}{Tabla conjunta y posterior}
+  \small
+  Con el mismo procedimiento de las diapositivas 17 a 21 ($P(\text{estado},\text{lectura})=P(\text{estado})\,P(\text{lectura}\mid\text{estado})$, y Bayes para actualizar la probabilidad de obstrucción):
+  \begin{center}
+  \begin{tabular}{lrrr}
+    \toprule
+    & $D$ (señal débil) & $\neg D$ (señal normal) & Marginal \\\midrule
+    $O$ (obstruido) & $0{,}285$ & $0{,}015$ & $0{,}30$ \\
+    $T$ (transitable) & $0{,}21$ & $0{,}49$ & $0{,}70$ \\
+    \midrule
+    Marginal & $0{,}495$ & $0{,}505$ & $1{,}00$ \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \[
+    P(O\mid D)=\frac{0{,}285}{0{,}495}\approx0{,}576 \qquad\qquad P(O\mid \neg D)=\frac{0{,}015}{0{,}505}\approx0{,}030
+  \]
+  \explicacion{Con señal débil, la creencia de obstrucción sube de $0{,}30$ a $0{,}576$; con señal normal, baja a $0{,}030$.}
+\end{frame}
+
+% 37
+\begin{frame}{Costos y decisión: ¿corto o largo?}
+  \small
+  \begin{center}
+  \begin{tabular}{lrr}
+    \toprule
+    Ruta & Transitable & Obstruido \\\midrule
+    Corto & 5 & 20 \\
+    Largo & 12 & 12 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  {\scriptsize\color{UAPGray} minutos de viaje; si el corto resulta obstruido, hay que retroceder y tomar igual el largo.}
+  \[
+    EC(\text{corto}\mid D)=5(0{,}424)+20(0{,}576)\approx13{,}6 \qquad EC(\text{largo}\mid D)=12
+  \]
+  \[
+    EC(\text{corto}\mid \neg D)=5(0{,}970)+20(0{,}030)\approx5{,}4 \qquad EC(\text{largo}\mid \neg D)=12
+  \]
+  \begin{block}{Regla resultante}
+    \textbf{Largo} ante señal débil ($13{,}6>12$); \textbf{corto} ante señal normal ($5{,}4<12$) --- la misma estructura que ``rodear ante alerta, cruzar ante sin alerta''.
+  \end{block}
+  \explicacion{El umbral de indiferencia es $p^{*}=7/15\approx0{,}467$: exactamente donde cae la frontera entre ambas reglas.}
+\end{frame}
+
+% 38
+\begin{frame}{De la tabla a un sistema real}
+  \small
+  En el robot, la tabla venía dada. En un sistema real hay que construirla:
+  \begin{itemize}
+    \item \textbf{Previa}: se estima con el historial del propio sistema, condicionada a franja horaria y día --- agregarla sin condicionar repite el error de ignorar la tasa base.
+    \item \textbf{Evidencia dado el estado}: se estima contando frecuencias sobre pares (señal observada, estado confirmado después), no se define a mano.
+    \item \textbf{Pocos datos, sensor débil}: en un tramo de bajo tránsito hay pocas observaciones para calibrar; esa es incertidumbre epistémica sobre el propio modelo, no solo sobre el estado.
+    \item \textbf{En producción}: no se arma una tabla de dos estados; se entrena un clasificador que combina varias señales y devuelve $P(\text{obstruido}\mid\text{features})$ directamente --- el mismo cálculo, aprendido de datos en vez de definido a mano.
+    \item \textbf{Combinar evidencia y actualizar}: sumar fuentes exige justificar independencia (diapositiva 20); si el patrón de uso cambia, el modelo queda desactualizado (actuar fuera de distribución, diapositiva 10).
+  \end{itemize}
+  \explicacion{La mecánica de Bayes no cambia; lo que cambia es de dónde provienen los parámetros probabilísticos que utiliza.}
+\end{frame}
+
+% 39
+\begin{frame}{También aplica: el caso del agua}
+  \small
+  El mismo patrón ---estado real, lectura, previa, evidencia y matriz de costos--- se aplica a la vigilancia de calidad del agua: el estado es la condición real del agua, la lectura es el resultado del análisis o del sensor, y la decisión es revisar o no revisar.
+\end{frame}
+
+% 40
+\begin{frame}{Síntesis conceptual}
+  \small
+  \begin{center}
+  \begin{tikzpicture}[node distance=5mm,scale=.72,transform shape]
+    \node[datum] (m) {Mundo\br real};
+    \node[process,right=of m] (o) {Observación};
+    \node[datum,right=of o] (b) {Creencia};
+    \node[decision,right=of b] (a) {Acción};
+    \node[datum,right=of a] (q) {Consecuencia};
+    \draw[flow] (m)--(o); \draw[flow] (o)--(b); \draw[flow] (b)--(a); \draw[flow] (a)--(q);
+    \draw[return] (q.south) to[out=-90,in=-90] (b.south);
+  \end{tikzpicture}
+  \end{center}
+  \vfill
+  \begin{itemize}
+    \item La incertidumbre se \concepto{origina} en observación, mundo y modelo.
+    \item Se \concepto{representa} con distribuciones conjuntas y creencias.
+    \item Se \concepto{actualiza} con Bayes ante nueva evidencia.
+    \item Se \concepto{decide} comparando costo esperado de las acciones.
+    \item Se \concepto{secuencializa} cuando las acciones cambian el futuro.
+  \end{itemize}
+\end{frame}
+
+% 41
+\begin{frame}{Errores que deben evitarse (repaso)}
+  \small
+  \concepto{Repaso:} esta lista integra los errores de razonamiento (diapositivas 9--10) y de decisión (diapositiva 28) ya estudiados.
+  \begin{itemize}
+    \item Confundir estado real, percepción y creencia.
+    \item Invertir condicionales o ignorar la tasa base.
+    \item Contar dos veces evidencia dependiente.
+    \item Presentar una creencia como certeza.
+    \item Valorar los errores de decisión como equivalentes.
+    \item Decidir sin análisis de sensibilidad sobre costos y probabilidades.
+    \item Aplicar RL a un problema que no es secuencial o donde explorar daña.
+  \end{itemize}
+  \vfill
+  \alert{Una respuesta correcta pertenece a un modelo y un objetivo declarados; la responsabilidad es examinar ambos.}
+\end{frame}
+
+% 42
+\begin{frame}{Cierre y próxima clase}
+  \small
+  Hoy construimos el puente entre el agente que percibe y el agente que decide.
+  \begin{itemize}
+    \item La incertidumbre es parte del problema, no un ruido a ignorar.
+    \item La probabilidad representa creencias; la decisión agrega consecuencias.
+    \item La secuencialidad prepara el terreno para el aprendizaje por refuerzo.
+  \end{itemize}
+  \vfill
+  \begin{block}{Próxima clase}
+    Actividad práctica integradora (robot y vehículo autónomo) y diseño experimental de aprendizaje automático: supervisado, no supervisado y evaluación fuera de muestra.
+  \end{block}
+\end{frame}
+
+\end{document}

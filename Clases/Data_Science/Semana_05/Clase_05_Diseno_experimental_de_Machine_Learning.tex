@@ -1,0 +1,716 @@
+% Compilar desde este directorio con:
+% pdflatex Clase_05_Diseno_experimental_de_Machine_Learning.tex
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric}
+
+\definecolor{UAPNavy}{HTML}{17324D}
+\definecolor{UAPTeal}{HTML}{007F82}
+\definecolor{UAPGold}{HTML}{E2A33A}
+\definecolor{UAPLight}{HTML}{F3F6F8}
+\definecolor{UAPGray}{HTML}{536471}
+\definecolor{UAPRed}{HTML}{A94343}
+
+\tikzset{
+  flow/.style={-{Stealth[length=2.2mm]},thick,draw=UAPNavy},
+  datum/.style={draw=UAPGold,fill=UAPGold!16,rounded corners=2pt,align=center,minimum height=8mm},
+  process/.style={draw=UAPTeal,fill=UAPTeal!12,rounded corners=3pt,very thick,align=center,minimum height=10mm},
+  decision/.style={draw=UAPNavy,fill=UAPNavy!9,rounded corners=3pt,very thick,align=center,minimum height=10mm}
+}
+
+\usetheme{Boadilla}
+\usecolortheme{default}
+\setbeamercolor{normal text}{fg=UAPNavy,bg=white}
+\setbeamercolor{structure}{fg=UAPTeal}
+\setbeamercolor{frametitle}{fg=white,bg=UAPNavy}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=UAPGold}
+\setbeamercolor{block title}{fg=white,bg=UAPTeal}
+\setbeamercolor{block body}{fg=UAPNavy,bg=UAPLight}
+\setbeamercolor{alertblock title}{fg=white,bg=UAPRed}
+\setbeamercolor{alertblock body}{fg=UAPNavy,bg=UAPRed!7}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{UAPGold}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{UAPTeal}$\bullet$}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1em]{author in head/foot}%
+      \color{white}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1em plus1fil]{date in head/foot}%
+      \color{UAPGray}\hfill Semana 5 \enspace | \enspace \insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+\newcommand{\concepto}[1]{\textcolor{UAPTeal}{\textbf{#1}}}
+\newcommand{\explicacion}[1]{\par\vspace{.25em}{\scriptsize\color{UAPGray}\textit{#1}\par}}
+
+\title[Data Science · Clase 5]{Diseño experimental de Machine Learning}
+\subtitle{Cómo formular, evaluar y comparar modelos de manera confiable}
+\author{Curso de Data Science}
+\institute{Semana 5 · Clase 5}
+\date{}
+
+\begin{document}
+
+% 1
+\begin{frame}[plain]
+  \begin{beamercolorbox}[wd=\paperwidth,ht=\paperheight,sep=2em]{frametitle}
+    \vfill
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\Huge\inserttitle\par}
+    \vspace{.45em}
+    {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\Large\insertsubtitle\par}
+    \vspace{1.1em}
+    \begin{tikzpicture}[node distance=4.5mm,scale=.72,transform shape,every node/.style={text=UAPNavy}]
+      \node[datum] (p) {Problema}; \node[process,right=of p] (t) {Tarea};
+      \node[datum,right=of t] (s) {Partición}; \node[process,right=of s] (e) {Evaluación};
+      \node[decision,right=of e] (r) {Evidencia};
+      \draw[flow] (p)--(t); \draw[flow] (t)--(s); \draw[flow] (s)--(e); \draw[flow] (e)--(r);
+    \end{tikzpicture}\par
+    \vspace{.7em}
+    {\color{white}\small Un resultado es confiable cuando el experimento representa el uso futuro y evita información indebida.\par}
+    \vfill
+    {\color{UAPGold}\large\insertauthor\par}
+    {\color{white}\insertinstitute\par}
+  \end{beamercolorbox}
+\end{frame}
+
+% 2
+\begin{frame}{De la incertidumbre al aprendizaje}
+  \small
+  En la Semana 4 estudiamos estimaciones, variabilidad y decisiones. Ahora usaremos datos históricos para construir una función que produzca estimaciones en casos nuevos.
+  \vspace{.4em}
+  \begin{tabularx}{\textwidth}{X X}
+    \toprule Antes & Ahora \\ \midrule
+    Estimar una proporción o una media & Aprender una relación entre variables \\
+    Cuantificar variabilidad muestral & Medir desempeño fuera del ajuste \\
+    Comparar acciones y costos & Elegir métricas vinculadas con esos costos \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Continuidad}
+    Una métrica también es una estimación obtenida sobre una muestra y bajo supuestos determinados.
+  \end{block}
+\end{frame}
+
+% 3
+\begin{frame}{Propósito y resultados de aprendizaje}
+  \footnotesize
+  \textbf{Propósito:} diseñar una evaluación de Machine Learning que produzca evidencia relevante, reproducible y libre de fuga de información.
+  \begin{block}{Al finalizar, podremos}
+    \begin{itemize}
+      \item distinguir paradigma, tarea, modelo, predicción y decisión;
+      \item formular clasificación, regresión, clustering y series temporales;
+      \item elegir particiones coherentes con la población de uso;
+      \item establecer baselines y métricas pertinentes;
+      \item aplicar validación cruzada sin contaminar la evaluación;
+      \item reconocer subajuste, sobreajuste y comparaciones injustas;
+      \item documentar un protocolo experimental reproducible.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+% 4
+\begin{frame}{Pregunta de apertura}
+  \small
+  Una organización desea anticipar problemas de calidad del agua para priorizar inspecciones.
+  \begin{itemize}
+    \item ¿Qué debe predecirse exactamente?
+    \item ¿Qué información estará disponible al predecir?
+    \item ¿Se evaluarán nuevas mediciones, nuevos sitios o meses futuros?
+    \item ¿Qué error tiene mayor costo?
+    \item ¿Cómo sabremos que un modelo mejora la práctica actual?
+  \end{itemize}
+  \begin{block}{Idea}
+    Antes de elegir un algoritmo debemos definir qué evidencia demostraría que su resultado es útil fuera de los datos usados para construirlo.
+  \end{block}
+\end{frame}
+
+% 5
+\begin{frame}{¿Qué significa aprender de los datos?}
+  \small
+  Aprender es ajustar una función a partir de ejemplos:
+  \[
+    f:\mathcal X\rightarrow\mathcal Y,\qquad \widehat y=f(x).
+  \]
+  \begin{itemize}
+    \item $x$: variables disponibles para un caso.
+    \item $y$: resultado real que se desea estimar.
+    \item $\widehat y$: predicción producida por el modelo.
+    \item El ajuste utiliza casos históricos.
+    \item La evaluación debe usar casos que no participaron del ajuste.
+  \end{itemize}
+  \begin{alertblock}{Resultado}Memorizar el pasado no demuestra que el modelo generalice.\end{alertblock}
+\end{frame}
+
+% 6
+\begin{frame}{Paradigma, tarea y algoritmo}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} X X}
+    \toprule Nivel & Pregunta & Ejemplo \\ \midrule
+    Paradigma & ¿De dónde proviene la señal de aprendizaje? & supervisado o no supervisado \\
+    Tarea & ¿Qué salida necesitamos? & clase, valor, grupo o pronóstico \\
+    Algoritmo & ¿Qué procedimiento ajustará la relación? & regresión, árbol o K-means \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.6em}
+  Una misma tarea admite varios algoritmos y un algoritmo puede resolver tareas diferentes.
+  \explicacion{Elegir ``un árbol'' no define todavía la población, la etiqueta, la partición ni la métrica.}
+\end{frame}
+
+% 7
+\begin{frame}{Aprendizaje supervisado}
+  \small
+  El conjunto de entrenamiento contiene pares con respuesta conocida:
+  \[
+    \mathcal D=\{(x_1,y_1),\ldots,(x_n,y_n)\}.
+  \]
+  \begin{itemize}
+    \item La respuesta $y$ guía el ajuste.
+    \item En \concepto{clasificación}, $y$ representa una categoría.
+    \item En \concepto{regresión}, $y$ representa una cantidad.
+    \item El desempeño se mide comparando $\widehat y$ con respuestas reservadas.
+  \end{itemize}
+  \begin{block}{Ejemplo}
+    Variables fisicoquímicas y antecedentes permiten estimar si una futura medición excederá un límite.
+  \end{block}
+\end{frame}
+
+% 8
+\begin{frame}{Aprendizaje no supervisado y semisupervisado}
+  \small
+  \textbf{No supervisado:} trabaja con entradas $x$ sin una respuesta objetivo conocida.
+  \begin{itemize}
+    \item Busca estructura, similitudes o representaciones.
+    \item El clustering agrupa sitios con perfiles semejantes.
+    \item Los grupos requieren interpretación y validación.
+  \end{itemize}
+  \textbf{Semisupervisado:} combina pocos casos etiquetados con muchos casos sin etiqueta.
+  \begin{itemize}
+    \item Puede ser útil cuando medir es barato y confirmar el resultado es costoso.
+    \item La evaluación final sigue necesitando etiquetas confiables.
+  \end{itemize}
+\end{frame}
+
+% 9
+\begin{frame}{Cuatro tareas de análisis}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} p{.27\textwidth} X}
+    \toprule Tarea & Salida & Pregunta de evaluación \\ \midrule
+    Clasificación & categoría o probabilidad & ¿detecta correctamente las clases? \\
+    Regresión & valor numérico & ¿cuánto se aleja del valor real? \\
+    Clustering & grupo o pertenencia & ¿los grupos son estables e interpretables? \\
+    Serie temporal & valor futuro & ¿supera un pronóstico ingenuo respetando el tiempo? \\
+    \bottomrule
+  \end{tabularx}
+  \begin{alertblock}{Control}
+    La codificación numérica de una categoría no la convierte en regresión.
+  \end{alertblock}
+\end{frame}
+
+% 10
+\begin{frame}{Un dominio, cuatro formulaciones}
+  \small
+  Con datos de calidad del agua podemos formular problemas distintos:
+  \begin{tabularx}{\textwidth}{X p{.2\textwidth} X}
+    \toprule Necesidad & Tarea & Objetivo \\ \midrule
+    Activar una inspección & clasificación & excede/no excede un límite \\
+    Estimar concentración & regresión & concentración en mg/L \\
+    Comparar perfiles de sitios & clustering & agrupación por similitud \\
+    Anticipar el próximo mes & serie temporal & concentración futura \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Resultado}
+    Cada formulación cambia la unidad, la salida, la partición y el criterio de evaluación.
+  \end{block}
+\end{frame}
+
+% 11
+\begin{frame}{Definición del problema predictivo}
+  \small
+  Antes de modelar debemos establecer:
+  \begin{enumerate}
+    \item decisión o uso de la predicción;
+    \item unidad de análisis y población objetivo;
+    \item instante en que se predice y horizonte del resultado;
+    \item variables disponibles;
+    \item objetivo y fuente de confirmación;
+    \item criterio de evaluación.
+  \end{enumerate}
+  \begin{block}{Pregunta de control}
+    ¿Qué cambiará operativamente cuando el modelo produzca una predicción?
+  \end{block}
+\end{frame}
+
+% 12
+\begin{frame}{Unidad, población y muestra}
+  \small
+  \begin{itemize}
+    \item \concepto{Unidad:} entidad sobre la que se produce una predicción; por ejemplo, \texttt{(sitio, fecha)}.
+    \item \concepto{Población objetivo:} conjunto de unidades donde se pretende utilizar el modelo.
+    \item \concepto{Muestra histórica:} unidades observadas disponibles para ajustar y evaluar.
+  \end{itemize}
+  \begin{alertblock}{Dependencia}
+    La misma estación en dos fechas produce dos filas, pero esas filas pueden estar relacionadas.
+  \end{alertblock}
+  \begin{block}{Consecuencia}
+    El número de filas no siempre coincide con el número de unidades independientes.
+  \end{block}
+\end{frame}
+
+% 13
+\begin{frame}{Instante y horizonte}
+  \small
+  \begin{itemize}
+    \item $t_0$: instante en que debe emitirse la predicción.
+    \item Ventana de observación: información disponible hasta $t_0$.
+    \item Horizonte $H$: periodo futuro donde se define el resultado.
+    \item Confirmación: momento en que la etiqueta puede conocerse.
+  \end{itemize}
+  \vspace{.4em}\centering
+  \begin{tikzpicture}[node distance=6mm,scale=.75,transform shape]
+    \node[datum] (p) {Pasado observable}; \node[process,right=of p] (t) {$t_0$: predicción};
+    \node[decision,right=of t] (h) {Horizonte $H$}; \node[datum,right=of h] (r) {Resultado};
+    \draw[flow] (p)--(t); \draw[flow] (t)--(h); \draw[flow] (h)--(r);
+  \end{tikzpicture}
+  \explicacion{Cambiar $t_0$ o $H$ cambia el problema, aunque las columnas tengan los mismos nombres.}
+\end{frame}
+
+% 14
+\begin{frame}{Generalización}
+  \small
+  Generalizar es mantener un desempeño útil en casos nuevos de la población objetivo.
+  \[
+    R(f)=\mathbb E_{(X,Y)\sim P_{\mathrm{uso}}}[L(Y,f(X))].
+  \]
+  La evaluación aproxima ese error esperado con datos no utilizados para ajustar el procedimiento.
+  \begin{itemize}
+    \item Casos representativos del uso esperado.
+    \item Separación compatible con tiempo y entidades.
+    \item Métrica alineada con el error relevante.
+  \end{itemize}
+  \begin{block}{Alcance}El resultado vale para el escenario evaluado, no para cualquier población futura.\end{block}
+\end{frame}
+
+% 15
+\begin{frame}{Entrenamiento, validación y prueba}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.22\textwidth} X}
+    \toprule Partición & Uso permitido \\ \midrule
+    Entrenamiento & ajustar parámetros y transformaciones \\
+    Validación & elegir variables, configuración y umbral \\
+    Prueba & medir una vez el procedimiento congelado \\
+    \bottomrule
+  \end{tabularx}
+  \begin{alertblock}{Control}
+    Consultar repetidamente la prueba y modificar el procedimiento convierte la prueba en validación.
+  \end{alertblock}
+  \explicacion{Los porcentajes 60/20/20 u 80/10/10 son opciones, no reglas universales.}
+\end{frame}
+
+% 16
+\begin{frame}{Partición aleatoria y estratificada}
+  \small
+  \begin{itemize}
+    \item \concepto{Aleatoria:} asigna unidades al azar.
+    \item \concepto{Estratificada:} conserva aproximadamente la proporción de clases.
+    \item Son adecuadas cuando las unidades pueden tratarse como intercambiables e independientes.
+    \item La estratificación estabiliza la medición de clases poco frecuentes.
+  \end{itemize}
+  \begin{alertblock}{Limitación}
+    Ninguna evita que mediciones del mismo sitio o del mismo episodio aparezcan a ambos lados.
+  \end{alertblock}
+\end{frame}
+
+% 17
+\begin{frame}{Partición por grupos}
+  \small
+  Todos los registros de un grupo permanecen en una sola partición.
+  \begin{block}{Ejemplo}
+    Sitios A--F $\rightarrow$ entrenamiento \quad|\quad G--H $\rightarrow$ validación \quad|\quad I--J $\rightarrow$ prueba.
+  \end{block}
+  \begin{itemize}
+    \item Grupo posible: sitio, sensor, paciente, cliente, vehículo o evento.
+    \item Evita compartir patrones propios de una entidad.
+    \item Evalúa transferencia hacia grupos no observados.
+  \end{itemize}
+  \textbf{Pregunta:} ¿el uso real predice nuevas fechas de sitios conocidos o sitios completamente nuevos?
+\end{frame}
+
+% 18
+\begin{frame}{Partición temporal}
+  \small
+  El pasado entrena y el futuro evalúa:
+  \begin{block}{Orden}
+    enero--junio: entrenamiento $\rightarrow$ julio--agosto: validación $\rightarrow$ septiembre: prueba.
+  \end{block}
+  \begin{itemize}
+    \item Respeta el orden causal y simula un despliegue prospectivo.
+    \item Revela cambios de estación, sensores o procesos.
+    \item Cada transformación se ajusta solo con datos anteriores al periodo evaluado.
+  \end{itemize}
+  \begin{alertblock}{Riesgo}
+    Barajar observaciones temporales puede permitir que el futuro ayude a predecir el pasado.
+  \end{alertblock}
+\end{frame}
+
+% 19
+\begin{frame}{¿Qué partición representa el uso?}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{X X}
+    \toprule Uso futuro & Partición principal \\ \midrule
+    nuevas filas independientes & aleatoria o estratificada \\
+    nuevas observaciones de grupos conocidos & temporal dentro de cada grupo \\
+    grupos nunca observados & por grupos \\
+    meses futuros & temporal \\
+    nuevos grupos en periodos futuros & combinación de grupos y tiempo \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Criterio}
+    Primero se define qué significa ``caso nuevo''; después se elige la partición.
+  \end{block}
+\end{frame}
+
+% 20
+\begin{frame}{Fuga de información}
+  \small
+  Existe \concepto{fuga} cuando el ajuste o la evaluación utilizan información que no estaría disponible al producir una predicción real.
+  \begin{itemize}
+    \item Produce resultados demasiado optimistas.
+    \item Puede aparecer en variables, particiones o transformaciones.
+    \item También ocurre cuando unidades relacionadas cruzan la frontera experimental.
+  \end{itemize}
+  \begin{block}{Prueba operativa}
+    Para cada variable registrar quién la genera, cuándo existe y qué datos intervinieron en su cálculo.
+  \end{block}
+\end{frame}
+
+% 21
+\begin{frame}{Tres fugas frecuentes}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} X X}
+    \toprule Tipo & Ejemplo & Control \\ \midrule
+    Temporal & usar la medición que confirma el evento & cortar variables en $t_0$ \\
+    Entidad & mismo sitio en entrenamiento y prueba & separar por grupo \\
+    Preprocesamiento & imputar con la media de todos los datos & ajustar solo con entrenamiento \\
+    \bottomrule
+  \end{tabularx}
+  \begin{alertblock}{Resultado}
+    Eliminar una columna sospechosa no basta: toda la frontera experimental debe preservar la separación.
+  \end{alertblock}
+\end{frame}
+
+% 22
+\begin{frame}{Ejemplo numérico: imputación contaminada}
+  \small
+  Valores de entrenamiento: $[8,10,12]$. Valor faltante en entrenamiento: \texttt{NA}. Valor de prueba: $30$.
+  \begin{itemize}
+    \item Media correcta, calculada solo con entrenamiento:
+    \[
+      \bar x_{train}=(8+10+12)/3=10.
+    \]
+    \item Media contaminada, calculada incluyendo prueba:
+    \[
+      \bar x_{todo}=(8+10+12+30)/4=15.
+    \]
+  \end{itemize}
+  \begin{alertblock}{Problema}
+    Imputar con 15 permite que el valor reservado de prueba modifique los datos de entrenamiento.
+  \end{alertblock}
+\end{frame}
+
+% 23
+\begin{frame}{Duplicados y selección de atributos}
+  \small
+  \textbf{Duplicados o casos relacionados:} copias, ventanas solapadas o mediciones del mismo episodio pueden inflar la muestra y aparecer en particiones distintas.
+  \vspace{.5em}
+
+  \textbf{Selección de atributos:} elegir variables mediante correlaciones, rankings o desempeño también aprende de los datos.
+  \begin{itemize}
+    \item Los duplicados relacionados deben permanecer juntos.
+    \item La selección basada en datos debe realizarse dentro de entrenamiento o de cada fold.
+    \item La prueba no interviene en ninguna selección.
+  \end{itemize}
+\end{frame}
+
+% 24
+\begin{frame}{Baseline: referencia mínima}
+  \small
+  Un baseline es una referencia simple, reproducible y disponible con la misma información que el modelo.
+  \begin{itemize}
+    \item Determina qué mejora debe justificar la complejidad.
+    \item Detecta errores del pipeline y métricas mal interpretadas.
+    \item Puede ser una regla operativa existente, no solo una constante.
+    \item Debe evaluarse en exactamente los mismos casos.
+  \end{itemize}
+  \begin{block}{Resultado}
+    Superar un baseline débil no demuestra utilidad; la referencia debe ser pertinente.
+  \end{block}
+\end{frame}
+
+% 25
+\begin{frame}{Baselines por tipo de tarea}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.22\textwidth} X}
+    \toprule Tarea & Baseline posible \\ \midrule
+    Clasificación & clase mayoritaria o frecuencia histórica \\
+    Regresión & media o mediana del entrenamiento \\
+    Serie temporal & último valor o mismo periodo anterior \\
+    Clustering & partición trivial y estabilidad frente a remuestreo \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Referencia operativa}
+    En calidad del agua también puede compararse contra la regla de inspección vigente.
+  \end{block}
+\end{frame}
+
+% 26
+\begin{frame}{Ejemplo: accuracy engañosa}
+  \footnotesize
+  En 100 mediciones hay 20 excedencias y 80 casos normales. El baseline siempre predice ``normal''.
+  \begin{center}
+  \begin{tabular}{lrr}
+    \toprule & Excedencia real & Normal real \\ \midrule
+    Predice excedencia & VP = 0 & FP = 0 \\
+    Predice normal & FN = 20 & VN = 80 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \[
+    \mathrm{accuracy}=80/100=80\%,\qquad \mathrm{recall}=0/20=0\%.
+  \]
+  \begin{alertblock}{Lectura}
+    Tiene accuracy alta, pero no detecta ninguna excedencia.
+  \end{alertblock}
+\end{frame}
+
+% 27
+\begin{frame}{Matriz de confusión}
+  \small
+  \begin{center}
+  \begin{tabular}{lcc}
+    \toprule & Real positiva & Real negativa \\ \midrule
+    Predicción positiva & verdadero positivo (VP) & falso positivo (FP) \\
+    Predicción negativa & falso negativo (FN) & verdadero negativo (VN) \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \begin{itemize}
+    \item VP y VN son aciertos respecto de la clase definida como positiva.
+    \item FP es una falsa alarma; FN es un positivo omitido.
+    \item La clase positiva debe declararse antes de interpretar las métricas.
+  \end{itemize}
+\end{frame}
+
+% 28
+\begin{frame}{Métricas de clasificación}
+  \small
+  Supongamos $VP=16$, $FP=8$, $FN=4$ y $VN=72$:
+  \[
+    \mathrm{accuracy}=\frac{16+72}{100}=0{,}88,
+  \]
+  \[
+    \operatorname{Prec}=\frac{16}{16+8}=0{,}67,\qquad
+    \mathrm{recall}=\frac{16}{16+4}=0{,}80,
+  \]
+  \[
+    F_1=\frac{2VP}{2VP+FP+FN}=\frac{32}{44}=0{,}73.
+  \]
+  \begin{block}{Resultado}Cada métrica responde una pregunta diferente.\end{block}
+\end{frame}
+
+% 29
+\begin{frame}{Métrica, prevalencia y costo}
+  \small
+  \begin{itemize}
+    \item \concepto{Accuracy:} fracción total de aciertos; puede ocultar una clase rara.
+    \item \concepto{Precisión:} de las alertas emitidas, cuántas eran correctas.
+    \item \concepto{Recall:} de los eventos reales, cuántos se detectaron.
+    \item \concepto{$F_1$:} equilibra precisión y recall, pero no incorpora verdaderos negativos.
+  \end{itemize}
+  Si omitir una excedencia es más costoso que realizar una inspección innecesaria, recall merece especial atención.
+  \begin{alertblock}{Control}
+    Ninguna métrica sustituye la declaración de costos y capacidad operativa.
+  \end{alertblock}
+\end{frame}
+
+% 30
+\begin{frame}{Métricas de regresión}
+  \small
+  Para errores $e_i=y_i-\widehat y_i$:
+  \[
+    \mathrm{MAE}=\frac{1}{n}\sum_{i=1}^n|e_i|,
+    \qquad
+    \mathrm{RMSE}=\sqrt{\frac{1}{n}\sum_{i=1}^n e_i^2}.
+  \]
+  \begin{itemize}
+    \item Ambas conservan la unidad de $y$.
+    \item MAE pondera linealmente la magnitud del error.
+    \item RMSE penaliza más los errores grandes.
+    \item La elección depende de las consecuencias de los errores extremos.
+  \end{itemize}
+\end{frame}
+
+% 31
+\begin{frame}{Ejemplo numérico: MAE y RMSE}
+  \small
+  Valores reales: $[10,12,18,20]$. Predicciones: $[11,10,17,26]$.
+
+  Errores absolutos: $[1,2,1,6]$.
+  \[
+    \mathrm{MAE}=\frac{1+2+1+6}{4}=2{,}5.
+  \]
+  \[
+    \mathrm{RMSE}=\sqrt{\frac{1^2+2^2+1^2+6^2}{4}}
+    =\sqrt{10{,}5}\approx3{,}24.
+  \]
+  \begin{block}{Lectura}
+    RMSE aumenta más por el error de 6 unidades.
+  \end{block}
+\end{frame}
+
+% 32
+\begin{frame}{$R^2$ y sus límites}
+  \small
+  \[
+    R^2=1-\frac{\sum_i(y_i-\widehat y_i)^2}{\sum_i(y_i-\bar y)^2}.
+  \]
+  \begin{itemize}
+    \item Compara el error del modelo con predecir la media.
+    \item Puede ser negativo fuera de muestra.
+    \item No conserva la unidad del objetivo.
+    \item Un valor alto no garantiza errores operativamente pequeños.
+    \item En series con tendencia puede resultar engañoso.
+  \end{itemize}
+  \begin{block}{Recomendación}
+    Informar $R^2$ junto con MAE o RMSE y un baseline pertinente.
+  \end{block}
+\end{frame}
+
+% 33
+\begin{frame}{Evaluar clustering}
+  \small
+  Sin etiquetas objetivo no existe una accuracy predictiva convencional.
+  \begin{itemize}
+    \item \concepto{Cohesión:} observaciones próximas dentro de cada grupo.
+    \item \concepto{Separación:} grupos alejados entre sí.
+    \item \concepto{Silhouette:} combina cohesión y separación en una escala aproximada de $-1$ a $1$.
+    \item \concepto{Estabilidad:} grupos similares ante remuestreo o cambios razonables.
+    \item \concepto{Utilidad:} perfiles interpretables que apoyan una decisión.
+  \end{itemize}
+  \begin{alertblock}{Control}
+    Un valor interno alto no demuestra que los grupos sean relevantes para el dominio.
+  \end{alertblock}
+\end{frame}
+
+% 34
+\begin{frame}{Evaluar series temporales}
+  \small
+  \begin{itemize}
+    \item Entrenar con pasado y validar sobre periodos posteriores.
+    \item Comparar contra persistencia y estacionalidad simple.
+    \item Medir varios orígenes y horizontes, no un único corte conveniente.
+    \item Ajustar transformaciones nuevamente en cada ventana.
+  \end{itemize}
+  \begin{block}{Ventana expansiva}
+    enero--marzo $\rightarrow$ abril \quad|\quad enero--abril $\rightarrow$ mayo \quad|\quad enero--mayo $\rightarrow$ junio.
+  \end{block}
+  \explicacion{El promedio resume desempeño; la variación entre periodos revela estabilidad temporal.}
+\end{frame}
+
+% 35
+\begin{frame}{Validación cruzada}
+  \small
+  En K-fold, el conjunto de desarrollo se divide en $K$ bloques. Cada bloque actúa una vez como validación:
+  \[
+    \bar m=\frac{1}{K}\sum_{k=1}^{K}m_k.
+  \]
+  \begin{itemize}
+    \item Estratificada para conservar clases.
+    \item Por grupos para mantener entidades juntas.
+    \item Temporal con ventanas ordenadas.
+    \item La prueba final permanece fuera del ciclo.
+  \end{itemize}
+  \begin{block}{Resultado}
+    Reportar promedio y dispersión entre folds evita depender de una única partición favorable.
+  \end{block}
+\end{frame}
+
+% 36
+\begin{frame}{El pipeline se ajusta dentro de cada fold}
+  \footnotesize
+  En cada iteración:
+  \begin{enumerate}
+    \item ajustar imputación, escalado y codificación con los folds de entrenamiento;
+    \item seleccionar atributos usando solo esos folds;
+    \item transformar entrenamiento y validación;
+    \item ajustar el modelo;
+    \item medir sobre el fold reservado.
+  \end{enumerate}
+  \vspace{.25em}\centering
+  \begin{tikzpicture}[node distance=4mm,scale=.66,transform shape]
+    \node[datum] (t) {Training del fold}; \node[process,right=of t] (p) {Transformaciones};
+    \node[process,right=of p] (s) {Selección}; \node[decision,right=of s] (m) {Modelo};
+    \node[datum,right=of m] (v) {Validación};
+    \draw[flow] (t)--(p); \draw[flow] (p)--(s); \draw[flow] (s)--(m); \draw[flow] (m)--(v);
+  \end{tikzpicture}
+  \explicacion{El objeto evaluado es el procedimiento completo, no solo el algoritmo final.}
+\end{frame}
+
+% 37
+\begin{frame}{Subajuste y sobreajuste}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} p{.2\textwidth} p{.2\textwidth} X}
+    \toprule Situación & Entrenamiento & Validación & Lectura \\ \midrule
+    Subajuste & error alto & error alto & capacidad o representación insuficiente \\
+    Equilibrio & error bajo & error bajo y estable & generalización plausible \\
+    Sobreajuste & error muy bajo & error mayor & adaptación excesiva al entrenamiento \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Criterio}
+    Se elige por desempeño de validación, estabilidad y simplicidad, no por el mejor ajuste al entrenamiento.
+  \end{block}
+\end{frame}
+
+% 38
+\begin{frame}{Actividad: protocolo experimental}
+  \scriptsize
+  Cada equipo definirá, antes de entrenar:
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} X}
+    \toprule Sección & Evidencia mínima \\ \midrule
+    Problema & unidad, población, $t_0$, horizonte, $x$ e $y$ \\
+    Partición & entrenamiento, validación y prueba justificadas \\
+    Controles & riesgos de fuga y cómo se comprobarán \\
+    Referencia & baseline reproducible \\
+    Evaluación & métrica principal, auxiliares y costo relevante \\
+    Reproducción & versión de datos, semilla y reglas congeladas \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Hito}
+    Otro equipo debe poder reconstruir y auditar la evaluación propuesta.
+  \end{block}
+\end{frame}
+
+% 39
+\begin{frame}{Síntesis y próximo paso}
+  \footnotesize
+  \textbf{Flujo:} definición $\rightarrow$ tarea $\rightarrow$ partición $\rightarrow$ baseline $\rightarrow$ pipeline $\rightarrow$ validación $\rightarrow$ prueba.
+  \begin{itemize}
+    \item La tarea determina la salida, no el algoritmo.
+    \item La partición debe representar qué significa un caso nuevo.
+    \item La fuga invalida la evidencia de generalización.
+    \item Cada tarea necesita baselines y métricas pertinentes.
+    \item La validación evalúa todo el procedimiento.
+    \item La prueba mide una vez una configuración congelada.
+  \end{itemize}
+  \begin{block}{Próximo paso}
+    Implementar transformaciones y atributos ajustados únicamente con entrenamiento.
+  \end{block}
+\end{frame}
+
+\end{document}

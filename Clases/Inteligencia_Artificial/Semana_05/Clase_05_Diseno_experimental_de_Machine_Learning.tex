@@ -1,0 +1,616 @@
+% Compilar desde este directorio con:
+% pdflatex Clase_05_Diseno_experimental_de_Machine_Learning.tex
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
+
+\definecolor{UAPNavy}{HTML}{17324D}
+\definecolor{UAPTeal}{HTML}{007F82}
+\definecolor{UAPGold}{HTML}{E2A33A}
+\definecolor{UAPLight}{HTML}{F3F6F8}
+\definecolor{UAPGray}{HTML}{536471}
+\definecolor{UAPRed}{HTML}{A94343}
+
+\tikzset{
+  flow/.style={-{Stealth[length=2.2mm]},thick,draw=UAPNavy},
+  datum/.style={draw=UAPGold,fill=UAPGold!16,rounded corners=2pt,align=center,minimum height=8mm,text=UAPNavy},
+  process/.style={draw=UAPTeal,fill=UAPTeal!12,rounded corners=3pt,very thick,align=center,minimum height=10mm,text=UAPNavy},
+  decision/.style={draw=UAPNavy,fill=UAPNavy!9,rounded corners=3pt,very thick,align=center,minimum height=10mm,text=UAPNavy},
+  warning/.style={draw=UAPRed,fill=UAPRed!7,rounded corners=3pt,align=left},
+  axis/.style={-{Stealth[length=2mm]},draw=UAPGray,thick}
+}
+
+\usetheme{Boadilla}
+\usecolortheme{default}
+\setbeamercolor{normal text}{fg=UAPNavy,bg=white}
+\setbeamercolor{structure}{fg=UAPTeal}
+\setbeamercolor{frametitle}{fg=white,bg=UAPNavy}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=UAPGold}
+\setbeamercolor{block title}{fg=white,bg=UAPTeal}
+\setbeamercolor{block body}{fg=UAPNavy,bg=UAPLight}
+\setbeamercolor{alertblock title}{fg=white,bg=UAPRed}
+\setbeamercolor{alertblock body}{fg=UAPNavy,bg=UAPRed!7}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{UAPGold}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{UAPTeal}$\bullet$}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1em]{author in head/foot}%
+      \color{white}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1em plus1fil]{date in head/foot}%
+      \color{UAPGray}\hfill Semana 5 \enspace | \enspace \insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+\newcommand{\concepto}[1]{\textcolor{UAPTeal}{\textbf{#1}}}
+\newcommand{\br}{\\}
+\newcommand{\pregunta}[1]{\begin{block}{Pregunta clave}#1\end{block}}
+
+\title[IA · Clase 5]{Diseño experimental de Machine Learning}
+\subtitle{De datos históricos a decisiones confiables}
+\author{Curso de Inteligencia Artificial}
+\institute{Semana 5 · Clase 5}
+\date{}
+
+\begin{document}
+
+% 1
+\begin{frame}[plain]
+  \begin{beamercolorbox}[wd=\paperwidth,ht=\paperheight,sep=2em]{frametitle}
+    \vfill
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\Huge\inserttitle\par}
+    \vspace{.45em}{\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\Large\insertsubtitle\par}
+    \vspace{1em}
+    \begin{tikzpicture}[node distance=4mm,scale=.72,transform shape]
+      \node[decision] (d) {Decisión}; \node[datum,right=of d] (x) {Datos};
+      \node[process,right=of x] (f) {Función\br aprendida}; \node[datum,right=of f] (e) {Evaluación};
+      \node[decision,right=of e] (a) {Acción};
+      \draw[flow] (d)--(x); \draw[flow] (x)--(f); \draw[flow] (f)--(e); \draw[flow] (e)--(a);
+    \end{tikzpicture}\par
+    \vspace{.7em}{\color{white}\small El valor de una predicción depende del experimento que permite confiar en ella.\par}
+    \vfill {\color{UAPGold}\large\insertauthor\par}{\color{white}\insertinstitute\par}
+  \end{beamercolorbox}
+\end{frame}
+
+% 2
+\begin{frame}{Continuidad: de incertidumbre a aprendizaje}
+  \small Un agente decide con información parcial y costos distintos para cada error.
+  \begin{itemize}
+    \item La probabilidad representó la creencia sobre un estado oculto.
+    \item El costo esperado conectó esa creencia con una acción.
+    \item En sistemas reales, las probabilidades y reglas se estiman con datos históricos.
+  \end{itemize}
+  \begin{block}{Continuidad}Diseñar el experimento determina si una estimación aprendida puede sostener una decisión fuera de los datos usados para construirla.\end{block}
+\end{frame}
+
+% 3
+\begin{frame}{Propósito y resultados de aprendizaje}
+  \small \textbf{Propósito:} diseñar una evaluación de Machine Learning alineada con la decisión y libre de información indebida.
+  \begin{block}{Al finalizar, podremos}
+  \begin{itemize}
+    \item distinguir tarea, modelo, regla de decisión y agente;
+    \item definir unidad, población, instante, horizonte, variables y etiqueta;
+    \item elegir particiones coherentes con la forma de uso;
+    \item construir baselines y métricas vinculadas con costos;
+    \item aplicar validación cruzada sin fuga de información;
+    \item reconocer subajuste, sobreajuste y comparaciones injustas;
+    \item documentar un procedimiento reproducible y congelado.
+  \end{itemize}
+  \end{block}
+\end{frame}
+
+% 4
+\begin{frame}{Pregunta de apertura}
+  \small
+  \pregunta{Un vehículo debe decidir si ingresa a un tramo. ¿Cómo demostramos que su estimación de bloqueo funcionará con tramos futuros?}
+  \begin{itemize}
+    \item ¿Qué señales existen antes de ingresar? ¿Cuándo se confirma el estado real?
+    \item ¿Qué error es más costoso: ingresar con bloqueo o desviarse sin necesidad?
+    \item ¿Qué datos representan el uso real?
+  \end{itemize}
+  \begin{alertblock}{Idea}El experimento debe reproducir la información y las restricciones disponibles al decidir.\end{alertblock}
+\end{frame}
+
+% 5
+\begin{frame}{De probabilidades dadas a estimaciones aprendidas}
+  \small
+  \begin{tabularx}{\textwidth}{XX}\toprule
+  \textbf{Probabilidad especificada} & \textbf{Estimación aprendida}\\\midrule
+  Se entrega $P(B)$ y $P(A\mid B)$ & Se observan ejemplos históricos $(x_i,y_i)$\\
+  La tabla define la relación & Una función $f$ aproxima la relación\\
+  Bayes actualiza la creencia & $\hat y=f(x)$ estima el objetivo\\\bottomrule
+  \end{tabularx}
+  \begin{block}{Puente}Los datos reemplazan parámetros dados por estimaciones; el diseño experimental controla si esas estimaciones generalizan.\end{block}
+\end{frame}
+
+% 6
+\begin{frame}{¿Qué significa aprender?}
+  \small Aprender es ajustar, a partir de ejemplos, una función que transforma información disponible en una salida útil:
+  \[f:\mathcal{X}\rightarrow\mathcal{Y},\qquad \hat y=f(x).\]
+  \begin{itemize}
+    \item $x$: variables observadas antes de decidir. \item $y$: resultado real definido por el problema.
+    \item $\hat y$: estimación producida por la función aprendida.
+    \item El ajuste busca buen desempeño en casos no usados para aprender.
+  \end{itemize}
+  \begin{block}{Resultado}Memorizar ejemplos no equivale a aprender una relación generalizable.\end{block}
+\end{frame}
+
+% 7
+\begin{frame}{Modelo, regla de decisión y agente}
+  \small
+  \centering
+  \begin{tikzpicture}[node distance=4mm,scale=.74,transform shape]
+    \node[datum] (x) {Señales $x$}; \node[process,right=of x] (f) {Modelo $f$};
+    \node[datum,right=of f] (y) {Predicción $\hat y$}; \node[decision,right=of y] (r) {Regla\br y costos};
+    \node[datum,right=of r] (a) {Acción}; \draw[flow] (x)--(f); \draw[flow] (f)--(y); \draw[flow] (y)--(r); \draw[flow] (r)--(a);
+  \end{tikzpicture}
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.24\textwidth}X}\toprule
+  Modelo & estima una clase, valor o puntaje\\ Regla de decisión & convierte salida y costos en una acción\\ Agente & observa, aplica la regla, actúa y recibe consecuencias\\\bottomrule\end{tabularx}
+  \begin{alertblock}{Control}Una predicción de bloqueo no ordena desviarse; la acción depende del umbral, los costos y las restricciones.\end{alertblock}
+\end{frame}
+
+% 8
+\begin{frame}{Anatomía de un ejemplo}
+  \small Para un tramo observado a las 08:00:
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.12\textwidth}X}\toprule
+  Elemento & Ejemplo\\\midrule
+  $x$ & lluvia reciente, velocidad aguas arriba, alertas previas, tipo de vía\\
+  $y$ & $1$ si queda confirmado como bloqueado en 15 min; $0$ si queda libre\\
+  $\hat y$ & puntaje de bloqueo estimado antes de ingresar\\\bottomrule
+  \end{tabularx}
+  \begin{block}{Unidad temporal}Una fila representa una unidad en un instante. La etiqueta se conoce después; la predicción usa únicamente el pasado disponible a las 08:00.\end{block}
+\end{frame}
+
+% 9
+\begin{frame}{Aprendizaje supervisado}
+  \small El conjunto de entrenamiento contiene pares $(x_i,y_i)$ con respuesta conocida:
+  \[\{(x_1,y_1),\ldots,(x_n,y_n)\}\longrightarrow\hat f.\]
+  \begin{itemize}
+    \item La etiqueta guía el ajuste de la función.
+    \item La salida se compara con respuestas reales no usadas en el ajuste.
+    \item Ejemplos: bloqueo de un tramo, demanda de agua y tiempo de resolución de un reclamo.
+  \end{itemize}
+  \begin{block}{Idea}Supervisado describe la disponibilidad de etiquetas, no un algoritmo particular.\end{block}
+\end{frame}
+
+% 10
+\begin{frame}{Clasificación y regresión}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.22\textwidth}p{.25\textwidth}X}\toprule
+  Tarea & Salida & Ejemplo de transferencia\\\midrule
+  Clasificación & categoría o puntaje & tramo bloqueado/libre; reclamo urgente/no urgente\\
+  Regresión & valor numérico & demanda de agua; minutos para resolver un reclamo\\\bottomrule
+  \end{tabularx}
+  \begin{itemize}\item En clasificación, un puntaje puede convertirse en clase mediante un umbral.\item En regresión, la salida conserva escala y unidad.\end{itemize}
+  \begin{alertblock}{Control}La forma de $y$ define la tarea; la acción pertenece al sistema de decisión.\end{alertblock}
+\end{frame}
+
+% 11
+\begin{frame}{Aprendizaje no supervisado}
+  \small Los datos contienen variables $x_i$, pero no una etiqueta objetivo $y_i$.
+  \begin{itemize}
+    \item Busca estructura, similitudes o representaciones en los datos.
+    \item El \concepto{clustering} agrupa observaciones según un criterio de similitud.
+    \item Ejemplo: agrupar patrones de consumo de agua sin categorías previas.
+    \item Los grupos obtenidos requieren interpretación y validación respecto del propósito.
+  \end{itemize}
+  \begin{block}{Resultado}Descubrir estructura no demuestra por sí mismo capacidad predictiva ni prescribe una acción.\end{block}
+\end{frame}
+
+% 12
+\begin{frame}{Aprendizaje semisupervisado}
+  \small Combina pocos ejemplos etiquetados con muchos sin etiqueta:
+  \[\mathcal{D}_L=\{(x_i,y_i)\},\quad\mathcal{D}_U=\{x_j\},\quad |\mathcal{D}_L|\ll|\mathcal{D}_U|.\]
+  \begin{itemize}
+    \item Es útil cuando medir señales es barato y confirmar el resultado es costoso.
+    \item En movilidad abundan trazas, pero confirmar cada bloqueo exige verificación.
+    \item La evaluación final necesita etiquetas confiables y una partición representativa.
+  \end{itemize}
+  \begin{alertblock}{Control}Datos sin etiqueta amplían información sobre $x$; no reemplazan una definición precisa de $y$.\end{alertblock}
+\end{frame}
+
+% 13
+\begin{frame}{Comparación de paradigmas}
+  \scriptsize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.21\textwidth}p{.29\textwidth}X}\toprule
+  Paradigma & Evidencia disponible & Pregunta central\\\midrule
+  Supervisado & ejemplos $(x,y)$ & ¿qué salida corresponde a un caso nuevo?\\
+  No supervisado & ejemplos $x$ & ¿qué estructura aparece en los datos?\\
+  Semisupervisado & pocos $(x,y)$ y muchos $x$ & ¿cómo aprovechar ambos conjuntos?\\
+  Refuerzo & interacción, acciones y recompensas & ¿qué acciones acumulan mejores consecuencias?\\\bottomrule
+  \end{tabularx}
+  \begin{block}{Idea}El paradigma surge del tipo de retroalimentación disponible y del objetivo de la tarea.\end{block}
+\end{frame}
+
+% 14
+\begin{frame}{Partir de la decisión}
+  \small El diseño comienza en el uso, no en el archivo de datos:
+  \begin{enumerate}
+    \item decisión que debe tomar el sistema; \item consecuencias de cada error;
+    \item salida predictiva que informa la decisión; \item instante exacto en que se requiere;
+    \item evidencia disponible en ese instante; \item evaluación que reproduce esas condiciones.
+  \end{enumerate}
+  \pregunta{¿Qué cambiará operativamente cuando el modelo produzca $\hat y$?}
+\end{frame}
+
+% 15
+\begin{frame}{Definición del caso conductor}
+  \scriptsize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.22\textwidth}X}\toprule
+  Elemento & Definición\\\midrule
+  Decisión & ingresar al tramo o tomar un desvío\\ Salida predictiva & puntaje de bloqueo en los próximos 15 min\\
+  Regla & desviar si el puntaje supera el umbral operativo\\ Evidencia & señales registradas antes de ingresar\\
+  Confirmación & reporte verificado del estado del tramo\\ Costo principal & seguridad, demora y consumo del recorrido\\\bottomrule
+  \end{tabularx}
+  \begin{block}{Criterio de consistencia}Cada ejemplo debe respetar estas definiciones para representar la misma tarea.\end{block}
+\end{frame}
+
+% 16
+\begin{frame}{Unidad y población}
+  \small
+  \begin{itemize}
+    \item \concepto{Unidad de análisis}: un par (tramo, instante de decisión).
+    \item \concepto{Población objetivo}: decisiones de ingreso de la flota en la red y condiciones operativas definidas.
+    \item \concepto{Muestra}: unidades históricas observadas y recuperadas por el sistema de datos.
+  \end{itemize}
+  La misma vía en dos instantes produce dos unidades distintas. Dos registros de la misma unidad no son evidencia independiente.
+  \begin{alertblock}{Control}Evaluar sobre otra población responde otra pregunta, aunque las columnas coincidan.\end{alertblock}
+\end{frame}
+
+% 17
+\begin{frame}{Objetivo, etiqueta, predicción y acción}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.2\textwidth}X}\toprule
+  Objetivo & anticipar bloqueo antes de ingresar\\ Etiqueta $y$ & estado confirmado dentro del horizonte: $1/0$\\
+  Predicción $\hat y$ & puntaje o clase estimada\\ Acción & ingresar, desviar o solicitar verificación\\\bottomrule
+  \end{tabularx}
+  \[x\xrightarrow{f}\hat y\xrightarrow{\text{regla + costos}}a.\]
+  \begin{block}{Resultado}Evaluar $\hat y$ mide predicción; evaluar consecuencias de $a$ mide el sistema de decisión.\end{block}
+\end{frame}
+
+% 18
+\begin{frame}{Instante y horizonte}
+  \small
+  \begin{itemize}
+    \item $t_0$: instante en que el vehículo debe decidir.
+    \item Ventana de observación: datos con marca temporal $t\le t_0$.
+    \item Horizonte $H=15$ min; etiqueta: bloqueo confirmado en $(t_0,t_0+H]$.
+  \end{itemize}
+  \centering
+  \begin{tikzpicture}[scale=.88]
+    \draw[axis] (0,0)--(11,0); \draw[very thick,UAPTeal] (1,0)--(4.5,0); \draw[very thick,UAPGold] (4.5,0)--(8,0);
+    \draw (4.5,-.15)--(4.5,.15); \node[above] at (2.7,.1) {pasado observable}; \node[above] at (6.25,.1) {horizonte $H$};
+    \node[below,align=center] at (4.5,-.15) {$t_0$: predicción\\ acción}; \node[below] at (8,-.15) {confirmación};
+  \end{tikzpicture}
+  \begin{alertblock}{Control}Cambiar $t_0$ o $H$ cambia la tarea, la etiqueta y la utilidad operativa.\end{alertblock}
+\end{frame}
+
+% 19
+\begin{frame}{Variables disponibles al decidir}
+  \small
+  \begin{tabularx}{\textwidth}{XX}\toprule
+  \textbf{Admitidas en $t_0$} & \textbf{No admitidas en $t_0$}\\\midrule
+  lluvia acumulada hasta $t_0$ & lluvia registrada después de $t_0$\\
+  velocidad aguas arriba hasta $t_0$ & velocidad medida tras ingresar\\
+  reportes recibidos antes de $t_0$ & confirmación final del bloqueo\\
+  atributos estables del tramo & duración total del incidente\\\bottomrule
+  \end{tabularx}
+  \begin{alertblock}{Control}Una columna es válida por su momento real de disponibilidad, no por aparecer en la tabla histórica.\end{alertblock}
+\end{frame}
+
+% 20
+\begin{frame}{Fuga de información}
+  \small Existe \concepto{fuga} cuando el entrenamiento o la evaluación reciben información que no estaría disponible al producir la predicción real.
+  \begin{itemize}
+    \item Infla el resultado medido sin mejorar el uso futuro.
+    \item Puede ocurrir en variables, transformaciones o particiones.
+    \item También aparece cuando una misma entidad aporta registros casi idénticos a entrenamiento y evaluación.
+  \end{itemize}
+  \begin{block}{Prueba operativa}Para cada valor usado, registrar quién lo genera, cuándo existe y qué datos intervinieron en su cálculo.\end{block}
+\end{frame}
+
+% 21
+\begin{frame}{Tres fugas frecuentes}
+  \scriptsize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.2\textwidth}Xp{.31\textwidth}}\toprule
+  Tipo & Ejemplo & Control\\\midrule
+  Temporal & usar la duración final del bloqueo & cortar variables en $t_0$\\
+  Preprocesamiento & normalizar con media de todo el conjunto & ajustar solo con entrenamiento\\
+  Duplicados o entidad & misma ventana o vehículo en ambos lados & deduplicar y separar por unidad o grupo\\\bottomrule
+  \end{tabularx}
+  \begin{block}{Resultado}Quitar una columna sospechosa no basta; la frontera experimental debe aislar toda información futura o compartida.\end{block}
+\end{frame}
+
+% 22
+\begin{frame}{Generalización}
+  \small Generalizar es mantener desempeño en unidades nuevas de la población objetivo.
+  \[R(f)=\mathbb{E}_{(X,Y)\sim P_{\mathrm{uso}}}[L(Y,f(X))].\]
+  La evaluación estima ese riesgo con datos no usados para ajustar el procedimiento.
+  \begin{itemize}
+    \item Muestra representativa del uso esperado.
+    \item Separación compatible con dependencias temporales y de entidad.
+    \item Métrica alineada con el error relevante.
+  \end{itemize}
+  \begin{block}{Idea}Un valor fuera de muestra es evidencia bajo un escenario de uso definido, no una garantía universal.\end{block}
+\end{frame}
+
+% 23
+\begin{frame}{Entrenamiento, validación y prueba}
+  \small
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.22\textwidth}X}\toprule
+  Entrenamiento & ajustar parámetros y transformaciones\\
+  Validación & elegir variables, configuraciones y umbral con la métrica principal ya definida\\
+  Prueba & medir una vez el procedimiento congelado\\\bottomrule
+  \end{tabularx}
+  Consultar repetidamente la prueba la convierte en validación.
+  \begin{alertblock}{Control}La prueba se reserva para la medición final; cualquier cambio motivado por ella exige una nueva prueba independiente.\end{alertblock}
+\end{frame}
+
+% 24
+\begin{frame}{Partición aleatoria y estratificada}
+  \small
+  \begin{itemize}
+    \item \concepto{Aleatoria}: asigna unidades al azar; corresponde cuando son intercambiables e independientes.
+    \item \concepto{Estratificada}: conserva aproximadamente la proporción de clases en cada partición.
+    \item La estratificación estabiliza la medición cuando el bloqueo es poco frecuente.
+    \item Ninguna resuelve dependencias entre registros de una entidad ni anticipación temporal.
+  \end{itemize}
+  \begin{alertblock}{Control}Primero se define qué observaciones pueden separarse; después se conserva la distribución relevante.\end{alertblock}
+\end{frame}
+
+% 25
+\begin{frame}{Partición por grupos}
+  \small Todos los registros de un mismo grupo quedan en una sola partición.
+  \begin{center}\begin{tikzpicture}[node distance=8mm,scale=.82,transform shape]
+    \node[datum] (t) {Entrenamiento\br A, B, C};
+    \node[process,right=of t] (v) {Validación\br D};
+    \node[decision,right=of v] (p) {Prueba\br E};
+  \end{tikzpicture}\end{center}
+  \begin{itemize}
+    \item Grupo posible: vehículo, corredor, sensor, cliente o evento.
+    \item Evalúa transferencia hacia grupos no observados durante el ajuste.
+    \item Evita que patrones propios de una entidad aparezcan a ambos lados.
+  \end{itemize}
+  \pregunta{¿El uso real predice nuevos instantes de entidades conocidas o entidades completamente nuevas?}
+\end{frame}
+
+% 26
+\begin{frame}{Partición temporal}
+  \small El pasado entrena y el futuro evalúa:
+  \begin{center}\begin{tikzpicture}[node distance=2mm,scale=.8,transform shape]
+    \node[datum] (e) {Enero--marzo\br entrenamiento}; \node[process,right=of e] (v) {Abril\br validación}; \node[decision,right=of v] (p) {Mayo\br prueba};
+    \draw[flow] (e)--(v); \draw[flow] (v)--(p);
+  \end{tikzpicture}\end{center}
+  \begin{itemize}
+    \item Respeta causalidad y simula despliegue prospectivo.
+    \item Conserva juntas las ventanas de un mismo incidente cuando corresponde.
+    \item Puede revelar cambios de estación, sensores, rutas o comportamiento.
+  \end{itemize}
+  \begin{alertblock}{Control}Toda variable y transformación se calcula únicamente con información anterior al período evaluado.\end{alertblock}
+\end{frame}
+
+% 27
+\begin{frame}{Baseline: el mínimo que debe superarse}
+  \small Un baseline es una referencia simple, reproducible y disponible con la misma información.
+  \begin{itemize}
+    \item Clasificación: clase mayoritaria o regla operativa vigente.
+    \item Regresión: media o mediana del entrenamiento.
+    \item Series temporales: último valor observado o patrón estacional simple.
+  \end{itemize}
+  \begin{block}{Resultado}Un modelo complejo aporta valor solo si mejora una referencia pertinente en la métrica y el escenario elegidos.\end{block}
+\end{frame}
+
+% 28
+\begin{frame}{Baseline de clasificación: accuracy engañosa}
+  \small En 100 registros hay 20 bloqueos y 80 libres. El baseline siempre predice \texttt{libre}.
+  \begin{center}\begin{tabular}{lrr}\toprule
+   & Real bloqueado & Real libre\\\midrule
+  Predice bloqueado & VP $=0$ & FP $=0$\\ Predice libre & FN $=20$ & VN $=80$\\\bottomrule
+  \end{tabular}\end{center}
+  \[\mathrm{accuracy}=\frac{0+80}{100}=80\%,\qquad \mathrm{recall}=\frac{0}{0+20}=0\%.\]
+  \begin{alertblock}{Lectura}Acierta la clase frecuente, pero no detecta ningún bloqueo; accuracy sola no representa el objetivo.\end{alertblock}
+\end{frame}
+
+% 29
+\begin{frame}{Baselines de regresión y temporales}
+  \scriptsize
+  \begin{tabularx}{\textwidth}{p{.28\textwidth}p{.28\textwidth}X}\toprule
+  \textbf{Problema} & \textbf{Baseline} & \textbf{Qué controla}\\\midrule
+  demanda diaria de agua & mediana del entrenamiento & nivel constante robusto\\
+  tiempo de resolución & media del entrenamiento & promedio histórico\\
+  velocidad del tramo & último valor observado & persistencia temporal\\
+  demanda semanal & valor del mismo día previo & estacionalidad simple\\\bottomrule
+  \end{tabularx}
+  \begin{block}{Control}Los baselines fijos se estiman con entrenamiento. Un baseline temporal actualiza su estado en cada origen usando solo información disponible hasta ese instante.\end{block}
+\end{frame}
+
+% 30
+\begin{frame}{Métrica y costo}
+  \small La métrica resume errores predictivos; el costo expresa sus consecuencias.
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth}X}\toprule
+  FN & predecir libre con bloqueo: ingreso inseguro, detención y demora alta\\
+  FP & predecir bloqueado con tramo libre: desvío innecesario\\\bottomrule
+  \end{tabularx}
+  \begin{itemize}
+    \item Un umbral cambia el equilibrio entre FP y FN.
+    \item La métrica elegida debe visibilizar el error costoso.
+    \item La decisión puede minimizar costo esperado sujeto a restricciones de seguridad.
+  \end{itemize}
+  \begin{block}{Idea}Ninguna métrica reemplaza la declaración explícita de costos y límites operativos.\end{block}
+\end{frame}
+
+% 31
+\begin{frame}{Matriz de confusión}
+  \small
+  \begin{center}\begin{tabular}{lcc}\toprule
+   & Real positivo: bloqueado & Real negativo: libre\\\midrule
+  Predicción positiva & VP & FP\\ Predicción negativa & FN & VN\\\bottomrule
+  \end{tabular}\end{center}
+  \begin{itemize}
+    \item VP y VN son aciertos; FP es una falsa alarma; FN es un bloqueo omitido.
+    \item Total $N=VP+VN+FP+FN$.
+    \item Positivos reales $P=VP+FN$; positivos predichos $\hat P=VP+FP$.
+  \end{itemize}
+  \begin{alertblock}{Control}Definir la clase positiva antes de interpretar cualquier métrica.\end{alertblock}
+\end{frame}
+
+% 32
+\begin{frame}{Accuracy, precisión, recall y F1}
+  \small
+  \[\text{accuracy}=\frac{VP+VN}{VP+VN+FP+FN},\qquad \text{precisión}=\frac{VP}{VP+FP},\]
+  \[\text{recall}=\frac{VP}{VP+FN},\qquad F_1=2\frac{\text{precisión}\,\text{recall}}{\text{precisión}+\text{recall}}=\frac{2VP}{2VP+FP+FN}.\]
+  \begin{itemize}
+    \item Precisión: de las alertas emitidas, qué fracción era bloqueo.
+    \item Recall: de los bloqueos reales, qué fracción fue detectada.
+    \item $F_1$: media armónica de precisión y recall; no incorpora VN.
+  \end{itemize}
+  \begin{alertblock}{Denominadores}Los cocientes requieren denominador mayor que cero; si no hay positivos reales o predichos, se reporta esa condición.\end{alertblock}
+\end{frame}
+
+% 33
+\begin{frame}{MAE y RMSE}
+  \small Para errores $e_i=y_i-\hat y_i$ en $n$ observaciones:
+  \[\mathrm{MAE}=\frac{1}{n}\sum_{i=1}^{n}|e_i|,\qquad \mathrm{RMSE}=\sqrt{\frac{1}{n}\sum_{i=1}^{n}e_i^2}.\]
+  \begin{itemize}
+    \item Ambos se expresan en la unidad de $y$.
+    \item MAE pondera linealmente cada magnitud de error.
+    \item RMSE penaliza con mayor fuerza los errores grandes.
+  \end{itemize}
+  \begin{alertblock}{Control}Comparar ambas métricas sobre las mismas observaciones y declarar si los errores extremos tienen un costo especial.\end{alertblock}
+\end{frame}
+
+% 34
+\begin{frame}{Validación cruzada K-fold}
+  \small Para unidades intercambiables, se divide el conjunto de desarrollo en $K$ folds. Cada fold actúa una vez como validación y los $K-1$ restantes como entrenamiento.
+  \[\bar m=\frac{1}{K}\sum_{k=1}^{K}m_k.\]
+  \begin{itemize}
+    \item Con grupos, cada entidad completa se asigna a un fold.
+    \item Con tiempo, se usan ventanas expansivas o deslizantes: solo el pasado entrena y el futuro valida.
+    \item La prueba permanece fuera del ciclo completo.
+  \end{itemize}
+  \begin{block}{Resultado}La estrategia de remuestreo debe reproducir las dependencias y el orden del uso real.\end{block}
+\end{frame}
+
+% 35
+\begin{frame}{Transformaciones dentro de cada fold}
+  \small En cada iteración:
+  \begin{enumerate}
+    \item ajustar imputación, escalado y codificación con folds de entrenamiento;
+    \item transformar entrenamiento y validación con esos valores;
+    \item ajustar el modelo en entrenamiento transformado;
+    \item medir en validación transformada.
+  \end{enumerate}
+  \begin{center}\begin{tikzpicture}[node distance=3mm,scale=.69,transform shape]
+    \node[datum] (d) {Folds de\br entrenamiento}; \node[process,right=of d] (t) {Ajustar\br transformación};
+    \node[process,right=of t] (m) {Ajustar\br modelo}; \node[decision,right=of m] (v) {Aplicar a fold\br de validación};
+    \draw[flow] (d)--(t); \draw[flow] (t)--(m); \draw[flow] (m)--(v);
+  \end{tikzpicture}\end{center}
+  \begin{alertblock}{Control}Ajustar el preprocesamiento con todos los datos filtra información entre folds.\end{alertblock}
+\end{frame}
+
+% 36
+\begin{frame}{Selección de características}
+  \small Elegir variables también aprende de los datos y forma parte del procedimiento.
+  \begin{itemize}
+    \item \concepto{Disponibilidad}: cada variable debe existir en $t_0$.
+    \item \concepto{Pertinencia}: representa una señal compatible con el objetivo.
+    \item \concepto{Estabilidad}: significado y medición se sostienen en uso.
+    \item \concepto{Selección}: cualquier ranking o descarte basado en datos se ajusta dentro de cada fold.
+  \end{itemize}
+  \begin{block}{Resultado}Una lista fijada por disponibilidad o conocimiento del dominio puede preespecificarse; usar información de validación o prueba para elegir variables produce optimismo.\end{block}
+\end{frame}
+
+% 37
+\begin{frame}{Subajuste y sobreajuste}
+  \small
+  \begin{columns}[T]
+    \column{.48\textwidth}
+    \centering
+    \begin{tikzpicture}[x=1cm,y=1cm,scale=.72]
+      \draw[axis] (0,0)--(5.2,0) node[right,font=\scriptsize]{complejidad};
+      \draw[axis] (0,0)--(0,3.5) node[above,font=\scriptsize]{error};
+      \draw[UAPTeal,very thick] plot[smooth] coordinates{(.3,3)(1.2,2.2)(2.3,1.3)(3.4,.75)(4.8,.4)};
+      \draw[UAPRed,very thick] plot[smooth] coordinates{(.3,3.2)(1.2,2.1)(2.4,1.25)(3.2,1.05)(4,1.45)(4.8,2.4)};
+      \node[UAPTeal,font=\scriptsize] at (4.1,.45) {entrenamiento};
+      \node[UAPRed,font=\scriptsize] at (4.3,2.25) {validación};
+      \draw[dashed,UAPGold,thick] (3.2,0)--(3.2,1.05);
+    \end{tikzpicture}
+    \column{.48\textwidth}
+    \scriptsize
+    \begin{itemize}
+      \item \textbf{Subajuste}: errores altos en entrenamiento y validación; mejorar representación o capacidad.
+      \item \textbf{Equilibrio}: validación mínima y brecha controlada; conservar el procedimiento.
+      \item \textbf{Sobreajuste}: error de entrenamiento bajo y validación peor; reducir búsqueda, regularizar o reunir datos relevantes.
+    \end{itemize}
+  \end{columns}
+  \begin{block}{Idea}Se elige por desempeño de validación, no por el mejor ajuste al entrenamiento.\end{block}
+\end{frame}
+
+% 38
+\begin{frame}{Comparación justa y protocolo congelado}
+  \small Dos alternativas se comparan con las mismas:
+  \begin{itemize}
+    \item unidades, folds y período de prueba;
+    \item variables disponibles y tratamiento de faltantes;
+    \item métrica, clase positiva y regla de agregación;
+    \item presupuesto de búsqueda y semillas registradas.
+  \end{itemize}
+  \begin{block}{Protocolo congelado}Código, versión de datos, particiones, transformaciones, variables, configuración, umbral y métricas quedan fijados antes de abrir la prueba.\end{block}
+  \textbf{Resultado:} reproducibilidad es reconstruir el procedimiento y obtener resultados compatibles bajo las mismas condiciones.
+\end{frame}
+
+% 39
+\begin{frame}{Actividad integradora: diseñar antes de modelar}
+  \small Todos los equipos usan una plantilla común y la aplican a su proyecto. El robot o vehículo que estima un bloqueo funciona como caso de referencia compartido.
+  \begin{enumerate}
+    \item Escriban decisión, salida predictiva y regla de acción por separado.
+    \item Definan unidad, población, $t_0$, horizonte, $x$, $y$ y fuente de confirmación.
+    \item Marquen tres riesgos de fuga: temporal, preprocesamiento y entidad.
+    \item Registren partición, baseline y métrica principal en la plantilla común; justifiquen cada elección por el uso.
+  \end{enumerate}
+  \begin{block}{Producto de trabajo}Una ficha experimental de una página y un esquema del flujo de datos.\end{block}
+\end{frame}
+
+% 40
+\begin{frame}{Hito semanal y entregable}
+  \scriptsize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.2\textwidth}X}\toprule
+  Sección & Evidencia mínima\\\midrule
+  Formulación & decisión, $\hat y$, acción, unidad, población, $t_0$, $H$, $x$, $y$\\
+  Partición & diagrama de entrenamiento, validación y prueba con justificación\\
+  Controles & fugas identificadas y transformaciones dentro del fold\\
+  Evaluación & baseline y métrica principal fijados antes de comparar; costo relevante\\
+  Reproducción & versión de datos, semillas y procedimiento congelado\\\bottomrule
+  \end{tabularx}
+  \begin{block}{Hito}Otro equipo debe poder aplicar los mismos criterios, detectar información indebida y reproducir la evaluación propuesta.\end{block}
+\end{frame}
+
+% 41
+\begin{frame}{Síntesis}
+  \small
+  \begin{center}\begin{tikzpicture}[node distance=1.8mm,scale=.62,transform shape]
+    \node[decision] (d) {Decisión}; \node[datum,right=of d] (c) {Definición}; \node[datum,right=of c] (p) {Partición};
+    \node[process,right=of p] (b) {Baseline}; \node[process,right=of b] (r) {Procedimiento};
+    \node[process,right=of r] (v) {Validación}; \node[decision,right=of v] (t) {Prueba final}; \node[decision,right=of t] (a) {Acción};
+    \draw[flow] (d)--(c); \draw[flow] (c)--(p); \draw[flow] (p)--(b); \draw[flow] (b)--(r);
+    \draw[flow] (r)--(v); \draw[flow] (v)--(t); \draw[flow] (t)--(a);
+  \end{tikzpicture}\end{center}
+  \begin{itemize}
+    \item Aprender estima $\hat y=f(x)$; decidir convierte la salida en acción.
+    \item Unidad, población, instante y horizonte definen un ejemplo; la fuga invalida generalización.
+    \item La partición representa dependencias y uso; baselines y métricas se conectan con costos.
+    \item Preprocesamiento y selección se ajustan dentro de cada fold.
+    \item La prueba mide una vez un protocolo reproducible y congelado.
+  \end{itemize}
+  \begin{block}{Resultado}Un buen experimento hace creíble la conexión entre datos históricos y decisiones futuras.\end{block}
+\end{frame}
+
+\end{document}
