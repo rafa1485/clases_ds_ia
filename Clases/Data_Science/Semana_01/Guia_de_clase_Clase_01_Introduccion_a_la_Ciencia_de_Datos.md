@@ -69,7 +69,7 @@ El caso transversal es una empresa de **movilidad urbana**. Se conservan unidad 
 
 **Correspondencia con el libro.** Capítulo 1, §§1.1.1, 1.1.4-1.1.6; capítulo 2, objetivos de aprendizaje y §§2.1-2.4.
 
-**Propósito.** Convertir los cinco resultados en un contrato de formulación y argumentación, no de entrenamiento.
+**Propósito.** Convertir los cinco resultados en una definición de la formulación y la argumentación, no del entrenamiento.
 
 **Guion sugerido.** Leer los resultados como capacidades conectadas: distinguir objetos; separar descripción, predicción y prescripción; fijar unidad, población, alcance y horizonte; organizar el trabajo mediante *workflow*, **Descubrimiento de Conocimiento en Bases de Datos (KDD, por *Knowledge Discovery in Databases*)** y **Proceso Estándar Intersectorial para Minería de Datos (CRISP-DM, por *Cross-Industry Standard Process for Data Mining*)**; aplicar todo a zona-franja. Las siglas se definen aquí por ser su primera aparición.
 
@@ -145,7 +145,7 @@ El caso transversal es una empresa de **movilidad urbana**. Se conservan unidad 
 
 **Error frecuente o límite.** Llamar objetivo al sensor, igualar ausencia y cero, o creer que volumen elimina sesgo.
 
-**Comprobación.** Ante `GPS=(0,0)`, distinguir ubicación, error y ausencia mediante contrato y procedencia.
+**Comprobación.** Ante `GPS=(0,0)`, distinguir ubicación, error y ausencia mediante especificación y procedencia.
 
 **Conclusión que debe quedar.** Un dato es una representación parcial producida, con observaciones y ausencias que deben explicarse.
 
@@ -527,7 +527,7 @@ El caso transversal es una empresa de **movilidad urbana**. Se conservan unidad 
 
 **Guion sugerido.** CRISP-DM comienza con la comprensión del negocio, rotulada “comprensión del problema” en la diapositiva; después comprende datos, prepara, modela, evalúa y despliega. Sus productos incluyen ficha, inventario, tabla versionada, baseline, evaluación técnica-operativa y entrega. Despliegue puede ser informe, tablero, servicio o regla; no implica autonomía. Monitoreo y retirada continúan.
 
-**Conceptos y términos.** *Despliegue*: integración real. Una **Interfaz de Programación de Aplicaciones (API, por *Application Programming Interface*)** expone datos u operaciones mediante contrato; una respuesta exitosa no garantiza cobertura. *Retirada*: suspensión con alternativa segura.
+**Conceptos y términos.** *Despliegue*: integración real. Una **Interfaz de Programación de Aplicaciones (API, por *Application Programming Interface*)** expone datos u operaciones mediante una especificación; una respuesta exitosa no garantiza cobertura. *Retirada*: suspensión con alternativa segura.
 
 **Descripción detallada del diagrama.** Seis cajas forman un ciclo aproximadamente hexagonal. Arriba está comprensión del problema; luego, en sentido horario, comprensión de datos, preparación, modelado, evaluación y despliegue/entrega. Flechas azules recorren el ciclo y vuelven de despliegue al problema. Una flecha verde discontinua conecta evaluación con comprensión de datos y hace visible un retorno específico. La columna derecha resume tres ideas y una alerta sobre continuidad operativa. Orden: nombrar las fases en sentido horario, explicar el retorno evaluación-datos, leer que comienza por el problema y terminar en “no termina al publicar”. Interpretación válida: las fases son vocabulario y puntos de control. No afirma que sean departamentos, que se ejecuten una vez ni que CRISP-DM prescriba herramientas concretas. Ejemplo oral: evaluación revela cobertura desigual y obliga a revisar inventario. Pregunta: “¿Puede un informe semanal ser despliegue?”. Sí, si integra evidencia en el proceso de uso. Conclusión visual: el proyecto completo es cíclico y operacional.
 
@@ -571,7 +571,7 @@ El caso transversal es una empresa de **movilidad urbana**. Se conservan unidad 
 
 **Ejemplo de movilidad.** Tabla SQL de viajes, eventos JSON de telemetría y texto de reclamos pueden contribuir a zona-franja. Expandir una lista de incidentes puede multiplicar filas; agregar texto puede perder matices; ambas transformaciones deben declararse.
 
-**Error frecuente o límite.** Creer que esquema válido asegura significado, que JSON es libre de contrato o que “no estructurado” significa caótico. Una unión muchos-a-muchos puede inflar conteos sin producir error técnico.
+**Error frecuente o límite.** Creer que un esquema válido asegura significado, que JSON no necesita especificación o que “no estructurado” significa caótico. Una unión muchos-a-muchos puede inflar conteos sin producir error técnico.
 
 **Comprobación.** “Cada viaje tiene tres etiquetas y se expande a tres filas antes de contar. ¿Qué ocurre?”. Se triplica el conteo salvo que se preserve la unidad mediante otra tabla o agregación.
 
@@ -675,7 +675,7 @@ El caso transversal es una empresa de **movilidad urbana**. Se conservan unidad 
 
 **Guion sugerido.** **Reproducibilidad** reconstruye resultados; **trazabilidad** sigue decisiones y transformaciones. Python, R y SQL son medios. **Jupyter** combina narrativa, código y resultados y debe ejecutarse desde cero. **Quarto** genera documentos reproducibles. Una **semilla** repite secuencias bajo condiciones compatibles, no controla todo no determinismo. Un **checksum** identifica contenido exacto, no significado.
 
-**Conceptos y términos.** *Versión*: estado; *configuración*: parámetros; *prueba*: contrato verificado; *registro*: razón de una decisión, no solo métricas.
+**Conceptos y términos.** *Versión*: estado; *configuración*: parámetros; *prueba*: especificación verificada; *registro*: razón de una decisión, no solo métricas.
 
 **Composición visual relevante.** Tres columnas superiores agrupan entornos, artefactos y controles. Deben leerse horizontalmente como combinación: un entorno ejecuta código y datos bajo configuración; los controles vinculan versiones, checksums, pruebas y semillas. La caja central dibuja fuente identificada, transformación versionada, experimento registrado y resultado reconstruible. Las flechas indican dependencia documental, no que baste con conservar el último artefacto. Las viñetas inferiores corrigen tres reduccionismos: semilla, notebook y preferencia personal.
 
@@ -769,7 +769,7 @@ $$
 t_{disponibilidad}\le t_{decisión}.
 $$
 
-La disponibilidad debe ser anterior o igual a decisión; no equivale a `hora_evento`. La igualdad admite el corte si el contrato lo permite. Es necesaria, no suficiente: aún puede haber derivación de etiqueta, uso ilegítimo o contaminación global.
+La disponibilidad debe ser anterior o igual a decisión; no equivale a `hora_evento`. La igualdad admite el corte si la especificación lo permite. Es necesaria, no suficiente: aún puede haber derivación de etiqueta, uso ilegítimo o contaminación global.
 
 La misma condición puede expresarse como:
 
@@ -805,7 +805,7 @@ Ejemplo oral obligatorio: “Para decidir a las 09:00 sobre 09:00-09:30, un GPS 
 
 **Detección.** **Auditoría temporal** por campo; **replay** cronológico sin estados finales; **ablation** de variables sospechosas; **partición temporal** con transformaciones ajustadas en entrenamiento; búsqueda de duplicados, entidades compartidas y agregados que cruzan cortes. Investigar rendimiento extraordinario y diferencias entre retrospectiva y modo sombra.
 
-**Prevención.** **Point-in-time joins** por vigencia y disponibilidad; **snapshots** inmutables; timestamps separados de evento, recepción, procesamiento, disponibilidad y decisión; **contratos de latencia** con tolerancia y degradación; pruebas automatizadas de cortes, ventanas, ajuste en entrenamiento, claves y cardinalidad. Versionar etiquetas y ejecutar replay antes del piloto.
+**Prevención.** **Point-in-time joins** por vigencia y disponibilidad; **snapshots** inmutables; timestamps separados de evento, recepción, procesamiento, disponibilidad y decisión; **requisitos de latencia** con tolerancia y degradación; pruebas automatizadas de cortes, ventanas, ajuste en entrenamiento, claves y cardinalidad. Versionar etiquetas y ejecutar replay antes del piloto.
 
 **Error frecuente o límite.** Creer que ordenar por `hora_evento` resuelve todo, que usar datos históricos autoriza conocer su versión final o que una partición temporal elimina fugas creadas antes de dividir. Tampoco toda variable muy predictiva es fuga: se necesita examinar mecanismo y disponibilidad.
 

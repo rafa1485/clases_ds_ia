@@ -360,20 +360,24 @@
 \end{frame}
 
 % 19
-\begin{frame}{¿Qué partición representa el uso?}
+\begin{frame}{¿Qué partición reproduce el uso real?}
   \footnotesize
+  La prueba debe parecerse a los casos que recibirá el modelo después del despliegue.
+
+  \medskip
   \begin{tabularx}{\textwidth}{X X}
-    \toprule Uso futuro & Partición principal \\ \midrule
-    nuevas filas independientes & aleatoria o estratificada \\
-    nuevas observaciones de grupos conocidos & temporal dentro de cada grupo \\
-    grupos nunca observados & por grupos \\
-    meses futuros & temporal \\
-    nuevos grupos en periodos futuros & combinación de grupos y tiempo \\
+    \toprule Cómo llegará el caso nuevo & Partición recomendada \\ \midrule
+    otra fila independiente de la misma población & aleatoria o estratificada \\
+    una fecha posterior de un grupo conocido & temporal dentro de cada grupo \\
+    un sitio, paciente o vehículo nunca visto & por grupos \\
+    un periodo futuro & temporal \\
+    un grupo nuevo en un periodo futuro & combinación de grupos y tiempo \\
     \bottomrule
   \end{tabularx}
-  \begin{block}{Criterio}
-    Primero se define qué significa ``caso nuevo''; después se elige la partición.
+  \begin{block}{Pregunta guía}
+    Cuando el modelo se use, ¿deberá predecir otra fila, una fecha futura o una entidad nueva?
   \end{block}
+  \textbf{Regla:} la partición de prueba debe imitar esa situación.
 \end{frame}
 
 % 20
@@ -406,22 +410,37 @@
 \end{frame}
 
 % 22
-\begin{frame}{Ejemplo numérico: imputación contaminada}
-  \small
-  Valores de entrenamiento: $[8,10,12]$. Valor faltante en entrenamiento: \texttt{NA}. Valor de prueba: $30$.
-  \begin{itemize}
-    \item Media correcta, calculada solo con entrenamiento:
-    \[
-      \bar x_{train}=(8+10+12)/3=10.
-    \]
-    \item Media contaminada, calculada incluyendo prueba:
-    \[
-      \bar x_{todo}=(8+10+12+30)/4=15.
-    \]
-  \end{itemize}
-  \begin{alertblock}{Problema}
-    Imputar con 15 permite que el valor reservado de prueba modifique los datos de entrenamiento.
-  \end{alertblock}
+\begin{frame}{Imputación: separar antes de calcular}
+  \footnotesize
+  Queremos predecir alertas de calidad del agua usando la turbidez.
+
+  \medskip
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.42\textwidth} X}
+    \toprule Conjunto & Turbidez \\ \midrule
+    Entrenamiento, datos pasados & $[2,4,\mathrm{NA},6]$ \\
+    Prueba, periodo futuro & $[20]$ \\
+    \bottomrule
+  \end{tabularx}
+
+  \medskip
+  \begin{columns}[T,onlytextwidth]
+    \column{.49\textwidth}
+    \begin{block}{Correcto: separar primero}
+      $\bar x_{train}=(2+4+6)/3=4$.
+
+      El faltante se completa con 4.
+    \end{block}
+    \column{.49\textwidth}
+    \begin{alertblock}{Contaminado: calcular antes}
+      $\bar x_{todo}=(2+4+6+20)/4=8$.
+
+      El faltante se completa con 8.
+    \end{alertblock}
+  \end{columns}
+
+  \textbf{Problema:} el valor futuro de prueba modifica los datos con los que aprende el modelo.
+
+  \textbf{Regla:} separar primero; ajustar el imputador solo con entrenamiento y aplicarlo después a validación y prueba.
 \end{frame}
 
 % 23
@@ -439,6 +458,58 @@
 \end{frame}
 
 % 24
+\begin{frame}{Ejemplo: el mismo evento a ambos lados}
+  \footnotesize
+  La muestra \texttt{M-104} se exportó dos veces y las copias terminaron en particiones distintas:
+
+  \medskip
+  \begin{tabularx}{\textwidth}{>{\ttfamily}p{.19\textwidth} p{.19\textwidth} X r c}
+    \toprule \normalfont\textbf{Registro} & \textbf{Partición} & \textbf{Sitio y hora} & \textbf{Turbidez} & \textbf{Alerta} \\ \midrule
+    M-104 & entrenamiento & A, 10:00 & 18 & sí \\
+    M-104-copia & prueba & A, 10:00 & 18 & sí \\
+    \bottomrule
+  \end{tabularx}
+
+  \begin{alertblock}{Problema}
+    El modelo puede reconocer un evento ya observado. Un acierto sobre la copia no demuestra que generalice a una muestra nueva.
+  \end{alertblock}
+  \begin{block}{Control}
+    Identificar duplicados o agrupar por evento antes de particionar; todas las versiones del mismo episodio deben permanecer juntas.
+  \end{block}
+\end{frame}
+
+% 25
+\begin{frame}{Selección contaminada: la prueba elige la variable}
+  \footnotesize
+  El equipo compara modelos de una sola variable. Resultados ilustrativos:
+
+  \medskip
+  \begin{tabularx}{\textwidth}{>{\bfseries}X c c}
+    \toprule Variable utilizada & Accuracy en validación & Accuracy en prueba \\ \midrule
+    pH & \textbf{70\,\%} & 68\,\% \\
+    turbidez & 62\,\% & \textbf{91\,\%} \\
+    temperatura & 66\,\% & 65\,\% \\
+    \bottomrule
+  \end{tabularx}
+
+  \medskip
+  \begin{columns}[T,onlytextwidth]
+    \column{.49\textwidth}
+    \begin{block}{Correcto}
+      Elegir pH por validación, congelar la elección y consultar la prueba una sola vez.
+    \end{block}
+    \column{.49\textwidth}
+    \begin{alertblock}{Contaminado}
+      Elegir turbidez por su 91\,\% en prueba y publicar ese mismo valor como evaluación final.
+    \end{alertblock}
+  \end{columns}
+
+  \textbf{¿Qué ocurrió?} La prueba decidió qué variable conservar: pasó a funcionar como validación y el 91\,\% dejó de ser una evaluación independiente.
+
+  \textbf{Regla:} con muchas variables, alguna puede sobresalir en prueba por azar. La selección se realiza con entrenamiento y validación, nunca con prueba.
+\end{frame}
+
+% 26
 \begin{frame}{Baseline: referencia mínima}
   \small
   Un baseline es una referencia simple, reproducible y disponible con la misma información que el modelo.
@@ -453,7 +524,7 @@
   \end{block}
 \end{frame}
 
-% 25
+% 27
 \begin{frame}{Baselines por tipo de tarea}
   \small
   \begin{tabularx}{\textwidth}{>{\bfseries}p{.22\textwidth} X}
@@ -469,7 +540,7 @@
   \end{block}
 \end{frame}
 
-% 26
+% 28
 \begin{frame}{Ejemplo: accuracy engañosa}
   \footnotesize
   En 100 mediciones hay 20 excedencias y 80 casos normales. El baseline siempre predice ``normal''.
@@ -489,7 +560,7 @@
   \end{alertblock}
 \end{frame}
 
-% 27
+% 29
 \begin{frame}{Matriz de confusión}
   \small
   \begin{center}
@@ -507,7 +578,7 @@
   \end{itemize}
 \end{frame}
 
-% 28
+% 30
 \begin{frame}{Métricas de clasificación}
   \small
   Supongamos $VP=16$, $FP=8$, $FN=4$ y $VN=72$:
@@ -524,7 +595,7 @@
   \begin{block}{Resultado}Cada métrica responde una pregunta diferente.\end{block}
 \end{frame}
 
-% 29
+% 31
 \begin{frame}{Métrica, prevalencia y costo}
   \small
   \begin{itemize}
@@ -539,7 +610,7 @@
   \end{alertblock}
 \end{frame}
 
-% 30
+% 32
 \begin{frame}{Métricas de regresión}
   \small
   Para errores $e_i=y_i-\widehat y_i$:
@@ -556,7 +627,7 @@
   \end{itemize}
 \end{frame}
 
-% 31
+% 33
 \begin{frame}{Ejemplo numérico: MAE y RMSE}
   \small
   Valores reales: $[10,12,18,20]$. Predicciones: $[11,10,17,26]$.
@@ -574,7 +645,7 @@
   \end{block}
 \end{frame}
 
-% 32
+% 34
 \begin{frame}{$R^2$ y sus límites}
   \small
   \[
@@ -592,7 +663,7 @@
   \end{block}
 \end{frame}
 
-% 33
+% 35
 \begin{frame}{Evaluar clustering}
   \small
   Sin etiquetas objetivo no existe una accuracy predictiva convencional.
@@ -608,7 +679,7 @@
   \end{alertblock}
 \end{frame}
 
-% 34
+% 36
 \begin{frame}{Evaluar series temporales}
   \small
   \begin{itemize}
@@ -623,7 +694,7 @@
   \explicacion{El promedio resume desempeño; la variación entre periodos revela estabilidad temporal.}
 \end{frame}
 
-% 35
+% 37
 \begin{frame}{Validación cruzada}
   \small
   En K-fold, el conjunto de desarrollo se divide en $K$ bloques. Cada bloque actúa una vez como validación:
@@ -641,7 +712,7 @@
   \end{block}
 \end{frame}
 
-% 36
+% 38
 \begin{frame}{El pipeline se ajusta dentro de cada fold}
   \footnotesize
   En cada iteración:
@@ -662,22 +733,30 @@
   \explicacion{El objeto evaluado es el procedimiento completo, no solo el algoritmo final.}
 \end{frame}
 
-% 37
-\begin{frame}{Subajuste y sobreajuste}
-  \footnotesize
-  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} p{.2\textwidth} p{.2\textwidth} X}
-    \toprule Situación & Entrenamiento & Validación & Lectura \\ \midrule
-    Subajuste & error alto & error alto & capacidad o representación insuficiente \\
-    Equilibrio & error bajo & error bajo y estable & generalización plausible \\
-    Sobreajuste & error muy bajo & error mayor & adaptación excesiva al entrenamiento \\
-    \bottomrule
-  \end{tabularx}
-  \begin{block}{Criterio}
-    Se elige por desempeño de validación, estabilidad y simplicidad, no por el mejor ajuste al entrenamiento.
-  \end{block}
+% 39
+\begin{frame}{Curvas de pérdida: subajuste y sobreajuste}
+  \begin{columns}[c,onlytextwidth]
+    \column{.68\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{training-loss-curve.png}
+
+    \column{.30\textwidth}
+    \scriptsize
+    \textbf{Subajuste}\par
+    Ambas pérdidas son altas: el modelo todavía no aprendió suficiente.
+
+    \medskip
+    \textbf{Mejor punto}\par
+    La pérdida de validación alcanza su mínimo; allí conviene conservar el modelo.
+
+    \medskip
+    \textbf{Sobreajuste}\par
+    Entrenamiento sigue mejorando, pero validación deja de hacerlo y la separación aumenta.
+  \end{columns}
+  \explicacion{\textbf{Criterio:} la selección se realiza con validación. La prueba permanece fuera de esta decisión.}
 \end{frame}
 
-% 38
+% 40
 \begin{frame}{Actividad: protocolo experimental}
   \scriptsize
   Cada equipo definirá, antes de entrenar:
@@ -696,7 +775,7 @@
   \end{block}
 \end{frame}
 
-% 39
+% 41
 \begin{frame}{Síntesis y próximo paso}
   \footnotesize
   \textbf{Flujo:} definición $\rightarrow$ tarea $\rightarrow$ partición $\rightarrow$ baseline $\rightarrow$ pipeline $\rightarrow$ validación $\rightarrow$ prueba.

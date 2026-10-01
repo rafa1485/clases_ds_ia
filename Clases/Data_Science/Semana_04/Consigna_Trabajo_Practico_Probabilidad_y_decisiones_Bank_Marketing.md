@@ -37,7 +37,7 @@ El recorrido será: `datos → proporción observada → variabilidad → decisi
 
 ## 1. Preparar los datos
 
-El dataset reúne resultados de campañas telefónicas de una institución bancaria portuguesa. La variable `y` indica si el cliente contrató un depósito a plazo y `campaign` informa la cantidad de contactos realizados durante la campaña actual para ese cliente.
+El dataset reúne resultados de campañas telefónicas de una institución bancaria portuguesa. La variable `y` indica si el cliente adquirió un depósito a plazo y `campaign` informa la cantidad de contactos realizados durante la campaña actual para ese cliente.
 
 1. Ingresá al [enlace directo de descarga](https://archive.ics.uci.edu/static/public/222/bank+marketing.zip).
 2. Descargá y extraé los archivos hasta ubicar `bank.csv`.

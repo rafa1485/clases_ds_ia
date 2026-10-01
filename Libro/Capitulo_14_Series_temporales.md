@@ -94,7 +94,7 @@ donde $C_t$ varía más lentamente que el ruido, pero no satisface necesariament
 
 El ciclo no debe estimarse escogiendo a posteriori una onda que ajuste bien. Esa práctica produce una explicación visual sin capacidad predictiva. Resultan más defendibles variables vinculadas al mecanismo: cartera de pedidos, inventario, precio o índice de actividad, siempre que su valor futuro sea conocido o pueda pronosticarse honestamente.
 
-**Ejemplo.** Una fábrica recibe lotes grandes cada cuatro a siete semanas según contratos. La carga de máquinas exhibe máximos recurrentes, pero no un periodo fijo. Tratarla como estacionalidad mensual genera pronósticos desfasados. Incorporar pedidos confirmados puede explicar el ciclo mejor que imponer $m=30$.
+**Ejemplo.** Una fábrica recibe lotes grandes cada cuatro a siete semanas según los pedidos. La carga de máquinas exhibe máximos recurrentes, pero no un periodo fijo. Tratarla como estacionalidad mensual genera pronósticos desfasados. Incorporar pedidos confirmados puede explicar el ciclo mejor que imponer $m=30$.
 
 En series breves, conviene describir el movimiento como fluctuación de baja frecuencia y reconocer incertidumbre, en vez de bautizarlo como ciclo económico. La distinción tiene consecuencias: una estacionalidad estable admite un baseline estacional; un ciclo irregular exige información adicional o intervalos más amplios.
 
@@ -572,7 +572,7 @@ agrupar métricas, cobertura y residuos por horizonte y tipo de día
 
 ## 14.4. Evaluación de pronósticos
 
-Evaluar pronósticos es reproducir cómo se habrían emitido en el pasado. Deben fijarse origen, horizonte, frecuencia, información disponible, regla de actualización, baseline, métrica y unidad de decisión antes de observar resultados. Una cifra agregada sin ese contrato puede ocultar fuga, degradación con horizonte o fallas en periodos críticos.
+Evaluar pronósticos es reproducir cómo se habrían emitido en el pasado. Deben fijarse origen, horizonte, frecuencia, información disponible, regla de actualización, baseline, métrica y unidad de decisión antes de observar resultados. Una cifra agregada sin esa definición puede ocultar fuga, degradación con horizonte o fallas en periodos críticos.
 
 ### 14.4.1. Horizonte de predicción
 
@@ -772,7 +772,7 @@ traducir el resultado a una regla prudente de prioridad de zona
 
 **Validación temporal.** La ventana expansiva aprovecha los tres meses; una deslizante puede adaptarse a cambios entre meses. Justificar el primer origen, número de repeticiones, cadencia de emisión y si los horizontes se solapan. Ningún escalado, imputación, perfil horario, selección de orden o entrenamiento puede consultar fechas posteriores al origen.
 
-**Producto individual.** Entregar notebook reproducible con contrato de datos, controles de cobertura, particiones temporales, pronósticos e intervalos, métricas por horizonte, análisis de residuos o errores y comparación con baseline. Incluir una tabla con origen, objetivo, horizonte, observado y predicciones para permitir auditoría.
+**Producto individual.** Entregar notebook reproducible con especificación de datos, controles de cobertura, particiones temporales, pronósticos e intervalos, métricas por horizonte, análisis de residuos o errores y comparación con baseline. Incluir una tabla con origen, objetivo, horizonte, observado y predicciones para permitir auditoría.
 
 **Interpretación operativa.** Una regla didáctica puede priorizar una zona si su pronóstico supera el baseline, ponderando conectividad definida en el laboratorio. No debe presentarse como despacho óptimo: TLC no informa la ubicación de vehículos libres ni toda la demanda de transporte. Una caída puede reflejar demanda, cobertura o cambio del servicio.
 

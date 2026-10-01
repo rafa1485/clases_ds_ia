@@ -269,17 +269,21 @@ Barajar observaciones temporales puede permitir que el futuro ayude a predecir e
 
 ---
 
-# ¿Qué partición representa el uso?
+# ¿Qué partición reproduce el uso real?
 
-| Uso futuro | Partición principal |
+La prueba debe parecerse a los casos que recibirá el modelo después del despliegue.
+
+| Cómo llegará el caso nuevo | Partición recomendada |
 |---|---|
-| nuevas filas independientes | aleatoria o estratificada |
-| nuevas observaciones de grupos conocidos | temporal dentro de cada grupo |
-| grupos nunca observados | por grupos |
-| meses futuros | temporal |
-| nuevos grupos en periodos futuros | combinación de grupos y tiempo |
+| otra fila independiente de la misma población | aleatoria o estratificada |
+| una fecha posterior de un grupo conocido | temporal dentro de cada grupo |
+| un sitio, paciente o vehículo nunca visto | por grupos |
+| un periodo futuro | temporal |
+| un grupo nuevo en un periodo futuro | combinación de grupos y tiempo |
 
-**Criterio:** primero se define qué significa “caso nuevo”; después se elige la partición.
+**Pregunta guía:** cuando el modelo se use, ¿deberá predecir otra fila, una fecha futura o una entidad nueva?
+
+**Regla:** la partición de prueba debe imitar esa situación.
 
 ---
 
@@ -307,16 +311,21 @@ Eliminar una columna sospechosa no basta: toda la frontera experimental debe pre
 
 ---
 
-# Ejemplo numérico: imputación contaminada
+# Imputación: separar antes de calcular
 
-Valores de entrenamiento: $[8,10,12]$. Valor faltante en entrenamiento: `NA`. Valor de prueba: $30$.
+Queremos predecir alertas de calidad del agua usando la turbidez.
 
-- Media correcta, calculada solo con entrenamiento:
-  $$\bar x_{train}=(8+10+12)/3=10.$$
-- Media contaminada, calculada incluyendo prueba:
-  $$\bar x_{todo}=(8+10+12+30)/4=15.$$
+| Conjunto | Turbidez |
+|---|---|
+| Entrenamiento, datos pasados | $[2,4,\mathrm{NA},6]$ |
+| Prueba, periodo futuro | $[20]$ |
 
-Imputar con 15 permite que el valor reservado de prueba modifique los datos de entrenamiento.
+- **Correcto:** separar primero y calcular con entrenamiento: $(2+4+6)/3=4$. El faltante se completa con 4.
+- **Contaminado:** calcular antes de separar: $(2+4+6+20)/4=8$. El faltante se completa con 8.
+
+**Problema:** el valor futuro de prueba modifica los datos con los que aprende el modelo.
+
+**Regla:** separar primero; ajustar el imputador solo con entrenamiento y aplicarlo después a validación y prueba.
 
 ---
 
@@ -329,6 +338,40 @@ Imputar con 15 permite que el valor reservado de prueba modifique los datos de e
 - Los duplicados relacionados deben permanecer juntos.
 - La selección basada en datos debe realizarse dentro de entrenamiento o de cada fold.
 - La prueba no interviene en ninguna selección.
+
+---
+
+# Ejemplo: el mismo evento a ambos lados
+
+La muestra `M-104` se exportó dos veces y las copias terminaron en particiones distintas:
+
+| Registro | Partición | Sitio y hora | Turbidez | Alerta |
+|---|---|---|---:|---|
+| `M-104` | entrenamiento | A, 10:00 | 18 | sí |
+| `M-104-copia` | prueba | A, 10:00 | 18 | sí |
+
+**Problema:** el modelo puede reconocer un evento ya observado. Un acierto sobre la copia no demuestra que generalice a una muestra nueva.
+
+**Control:** identificar duplicados o agrupar por evento antes de particionar; todas las versiones del mismo episodio deben permanecer juntas.
+
+---
+
+# Selección contaminada: la prueba elige la variable
+
+El equipo compara modelos de una sola variable. Resultados ilustrativos:
+
+| Variable utilizada | Accuracy en validación | Accuracy en prueba |
+|---|---:|---:|
+| pH | **70 %** | 68 % |
+| turbidez | 62 % | **91 %** |
+| temperatura | 66 % | 65 % |
+
+- **Correcto:** elegir pH porque obtuvo el mejor resultado de validación. Después se congela la elección y se consulta la prueba una sola vez.
+- **Contaminado:** mirar también la prueba, elegir turbidez por su 91 % y publicar ese mismo 91 % como evaluación final.
+
+**¿Qué ocurrió?** El resultado de prueba decidió qué variable conservar. Por lo tanto, la prueba pasó a funcionar como validación y el 91 % ya no es una evaluación independiente.
+
+Con muchas variables, alguna puede sobresalir en prueba solo por azar. La selección debe hacerse con entrenamiento y validación, nunca con prueba.
 
 ---
 
@@ -537,15 +580,15 @@ El objeto evaluado es el procedimiento completo, no solo el algoritmo final.
 
 ---
 
-# Subajuste y sobreajuste
+# Curvas de pérdida: subajuste y sobreajuste
 
-| Situación | Entrenamiento | Validación | Lectura |
-|---|---|---|---|
-| Subajuste | error alto | error alto | capacidad o representación insuficiente |
-| Equilibrio | error bajo | error bajo y estable | generalización plausible |
-| Sobreajuste | error muy bajo | error mayor | adaptación excesiva al entrenamiento |
+![Pérdida de entrenamiento y validación a lo largo de las épocas](training-loss-curve.png)
 
-Se elige por desempeño de validación, estabilidad y simplicidad, no por el mejor ajuste al entrenamiento.
+- **Subajuste:** al comienzo, ambas pérdidas son altas; el modelo todavía no aprendió suficiente.
+- **Mejor punto:** la pérdida de validación alcanza su mínimo; allí conviene conservar el modelo.
+- **Sobreajuste:** la pérdida de entrenamiento sigue bajando, pero la de validación deja de mejorar y la separación entre curvas aumenta.
+
+La selección se realiza con validación. La prueba permanece fuera de esta decisión.
 
 ---
 

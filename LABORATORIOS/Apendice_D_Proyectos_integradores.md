@@ -1,10 +1,10 @@
-# Apéndice D. Proyectos integradores y contratos de datos
+# Apéndice D. Proyectos integradores y especificaciones de datos
 
 ## D.0. Propósito del apéndice
 
 Este apéndice convierte los cuatro casos transversales del libro en actividades realizables con fuentes concretas. Su función principal es evitar una situación frecuente en cursos de Ciencia de Datos e Inteligencia Artificial: formular una consigna atractiva que el dataset no puede responder.
 
-Cada caso se trata como un **contrato de datos y evaluación**. El contrato establece:
+Cada caso se trata como una **especificación de datos y evaluación**. La especificación establece:
 
 - qué fuente debe utilizarse y cómo fijar su versión;
 - qué representa una observación;

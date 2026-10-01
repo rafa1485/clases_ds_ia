@@ -8,7 +8,7 @@ Los laboratorios integradores conectan los contenidos del libro mediante cuatro 
 
 Cada laboratorio reutiliza las evidencias producidas por cuatro actividades EMO. El producto final es grupal, pero cada estudiante debe construir, interpretar y defender una variante individual. La aprobación no depende de alcanzar la mejor métrica; depende de demostrar que la solución es reproducible, metodológicamente correcta y realizable con las variables disponibles.
 
-Las fuentes, campos y límites se definen en el [Apéndice D](Apendice_D_Proyectos_integradores.md). Este documento operacionaliza ese contrato. Ante una diferencia con una explicación genérica de otro capítulo, prevalecen las variables y restricciones del Apéndice D.
+Las fuentes, campos y límites se definen en el [Apéndice D](Apendice_D_Proyectos_integradores.md). Este documento operacionaliza esa especificación. Ante una diferencia con una explicación genérica de otro capítulo, prevalecen las variables y restricciones del Apéndice D.
 
 ## 1. Reglas comunes de ejecución
 
@@ -767,7 +767,7 @@ Se aprueba cuando unidad, objetivo, partición, baseline, métricas y pipeline s
 
 ## 7.3. Uso de variables disponibles
 
-Se aprueba cuando toda entrada aparece en el contrato del laboratorio o se deriva mediante una regla reproducible. Una variable externa no distribuida no puede ser necesaria para la solución.
+Se aprueba cuando toda entrada aparece en la especificación del laboratorio o se deriva mediante una regla reproducible. Una variable externa no distribuida no puede ser necesaria para la solución.
 
 ## 7.4. Interpretación y decisión
 

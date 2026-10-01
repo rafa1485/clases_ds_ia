@@ -1,8 +1,8 @@
-# Ejemplos de cómo completar el Contrato del análisis
+# Ejemplos de cómo completar la Definición del análisis
 
-**Material de apoyo** para el Trabajo práctico: exploración de dos variables (sección 5 de la consigna, "Contrato del análisis").
+**Material de apoyo** para el Trabajo práctico: exploración de dos variables (sección 5 de la consigna, "Definición del análisis").
 
-> **Cómo usar este documento:** acá abajo vas a encontrar tres ejemplos completos de cómo podría quedar la tabla del contrato, cada uno con un par distinto (uno por cada vista: H, ZH y T). La idea **no** es que copies estas respuestas ni que uses estos mismos pares si te tocó otro: la idea es que veas el *nivel de detalle y el tono* que se espera en cada campo, para que sepas qué es "una buena respuesta" cuando completes la tuya. Cambiá lo que corresponda según el par que elegiste y según lo que efectivamente encuentres al ejecutar tu notebook (por ejemplo, los tamaños de muestra son inventados acá a modo de ilustración; los tuyos van a salir de tu propio código).
+> **Cómo usar este documento:** acá abajo vas a encontrar tres ejemplos completos de cómo podría quedar la tabla de definición, cada uno con un par distinto (uno por cada vista: H, ZH y T). La idea **no** es que copies estas respuestas ni que uses estos mismos pares si te tocó otro: la idea es que veas el *nivel de detalle y el tono* que se espera en cada campo, para que sepas qué es "una buena respuesta" cuando completes la tuya. Cambiá lo que corresponda según el par que elegiste y según lo que efectivamente encuentres al ejecutar tu notebook (por ejemplo, los tamaños de muestra son inventados acá a modo de ilustración; los tuyos van a salir de tu propio código).
 
 ---
 
@@ -59,7 +59,7 @@
 
 ## Puntos en común que valen para cualquier par
 
-Más allá del ejemplo puntual, hay algunas cosas que se repiten en los tres casos y que conviene tener presentes al completar tu propio contrato:
+Más allá del ejemplo puntual, hay algunas cosas que se repiten en los tres casos y que conviene tener presentes al completar tu propia definición:
 
 - La **pregunta exploratoria** siempre nombra las dos columnas concretas y el periodo, y evita palabras que sugieran causalidad ("afecta", "explica", "provoca").
 - El **significado de cada columna** se explica en términos que cualquier compañero entendería, sin asumir que ya sabe de qué se trata el dataset.
