@@ -1,0 +1,236 @@
+% Compilar desde este directorio con:
+% pdflatex Clase_06_Ingenieria_de_caracteristicas.tex
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
+
+\definecolor{UAPNavy}{HTML}{17324D}
+\definecolor{UAPTeal}{HTML}{007F82}
+\definecolor{UAPGold}{HTML}{E2A33A}
+\definecolor{UAPLight}{HTML}{F3F6F8}
+\definecolor{UAPGray}{HTML}{536471}
+\definecolor{UAPRed}{HTML}{A94343}
+
+\tikzset{
+  flow/.style={-{Stealth[length=2.2mm]},thick,draw=UAPNavy},
+  datum/.style={draw=UAPGold,fill=UAPGold!16,rounded corners=2pt,align=center,minimum height=8mm,text=UAPNavy},
+  process/.style={draw=UAPTeal,fill=UAPTeal!12,rounded corners=3pt,very thick,align=center,minimum height=10mm,text=UAPNavy},
+  decision/.style={draw=UAPNavy,fill=UAPNavy!9,rounded corners=3pt,very thick,align=center,minimum height=10mm,text=UAPNavy}
+}
+
+\usetheme{Boadilla}
+\usecolortheme{default}
+\setbeamercolor{normal text}{fg=UAPNavy,bg=white}
+\setbeamercolor{structure}{fg=UAPTeal}
+\setbeamercolor{frametitle}{fg=white,bg=UAPNavy}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=UAPGold}
+\setbeamercolor{block title}{fg=white,bg=UAPTeal}
+\setbeamercolor{block body}{fg=UAPNavy,bg=UAPLight}
+\setbeamercolor{alertblock title}{fg=white,bg=UAPRed}
+\setbeamercolor{alertblock body}{fg=UAPNavy,bg=UAPRed!7}
+\setbeamerfont{frametitle}{series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{UAPGold}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{UAPTeal}$\bullet$}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1em]{author in head/foot}%
+      \color{white}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1em plus1fil]{date in head/foot}%
+      \color{UAPGray}\hfill Semana 6 \enspace | \enspace \insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+\newcommand{\concepto}[1]{\textcolor{UAPTeal}{\textbf{#1}}}
+\newcommand{\br}{\\}
+
+\title[IA · Clase 6]{Ingeniería de características}
+\subtitle{De datos brutos a representaciones útiles}
+\author{Curso de Inteligencia Artificial}
+\institute{Semana 6 · Clase 6}
+\date{}
+
+\begin{document}
+
+% 1
+\begin{frame}[plain]
+  \begin{beamercolorbox}[wd=\paperwidth,ht=\paperheight,sep=2em]{frametitle}
+    \vfill
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\Huge\inserttitle\par}
+    \vspace{.45em}{\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\Large\insertsubtitle\par}
+    \vspace{1em}
+    \begin{tikzpicture}[node distance=5mm,scale=.76,transform shape]
+      \node[datum] (d) {Dato bruto}; \node[process,right=of d] (c) {Característica};
+      \node[process,right=of c] (p) {Pipeline}; \node[decision,right=of p] (m) {Modelo};
+      \draw[flow] (d)--(c); \draw[flow] (c)--(p); \draw[flow] (p)--(m);
+    \end{tikzpicture}\par
+    \vspace{.7em}{\color{white}\small El modelo solo puede aprender diferencias que su representación vuelve visibles.\par}
+    \vfill {\color{UAPGold}\large\insertauthor\par}{\color{white}\insertinstitute\par}
+  \end{beamercolorbox}
+\end{frame}
+
+% 2
+\begin{frame}{La representación define qué puede aprenderse}
+  \footnotesize
+  Una \concepto{característica} o \concepto{atributo} es una magnitud utilizada como entrada de un modelo.
+  \begin{tabularx}{\textwidth}{p{.24\textwidth} p{.29\textwidth} X}
+    \toprule Dato disponible & Representación posible & Supuesto incorporado \\ \midrule
+    fecha y hora & hora, día, feriado & existe un patrón de calendario \\
+    lluvia acumulada & valor, nivel o indicador & importa la magnitud o un umbral \\
+    ubicación & zona, distancia o conectividad & la cercanía relevante está bien definida \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Criterios}
+    Una característica útil tiene significado, está disponible al predecir, se calcula igual durante entrenamiento e inferencia y mantiene estabilidad operativa.
+  \end{block}
+\end{frame}
+
+% 3
+\begin{frame}{Características numéricas}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.2\textwidth} p{.28\textwidth} X}
+    \toprule Operación & Uso & Riesgo \\ \midrule
+    Estandarizar & comparar escalas & aprender media y dispersión con todos los datos \\
+    Logaritmo & representar cambios relativos & aplicarlo a ceros o negativos \\
+    Razón & normalizar por exposición & denominadores pequeños o nulos \\
+    Recorte & limitar extremos & ocultar eventos reales \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.35em}
+  Si una zona registra 120 viajes con capacidad 150:
+  \[
+    \text{presión}=120/150=0{,}80.
+  \]
+  \begin{alertblock}{Control}
+    La razón facilita comparar zonas de tamaños distintos, pero necesita una regla para capacidad cero.
+  \end{alertblock}
+\end{frame}
+
+% 4
+\begin{frame}{Características categóricas}
+  \small
+  \begin{itemize}
+    \item Una categoría nominal no tiene distancia ni orden intrínsecos.
+    \item Codificar \texttt{norte}, \texttt{centro}, \texttt{sur} como 1, 2, 3 crea una geometría artificial.
+    \item La codificación indicadora crea una columna binaria por nivel.
+    \item Las categorías ordinales admiten orden, pero no necesariamente intervalos iguales.
+    \item Los niveles raros y desconocidos necesitan una política explícita.
+  \end{itemize}
+  \begin{alertblock}{Control}
+    Una categoría nueva puede indicar cambio de población; reemplazarla silenciosamente por la más frecuente oculta ese cambio.
+  \end{alertblock}
+\end{frame}
+
+% 5
+\begin{frame}{Tiempo y espacio}
+  \small
+  Para una posición temporal $t$ dentro de un periodo $P$:
+  \[
+    x_{\sin}=\sin(2\pi t/P),\qquad x_{\cos}=\cos(2\pi t/P).
+  \]
+  El par conserva que las 23:00 y las 00:00 son horas cercanas. Los rezagos y medias móviles deben usar únicamente valores anteriores al instante de predicción.
+  \vspace{.55em}
+
+  En espacio pueden utilizarse distancias, pertenencia a zonas, accesibilidad o conectividad. La distancia geométrica no siempre representa tiempo de viaje ni transferencia del fenómeno.
+\end{frame}
+
+% 6
+\begin{frame}{Interacciones y conocimiento del dominio}
+  \footnotesize
+  Una interacción representa que el efecto de una variable depende de otra:
+  \[
+    f(x)=\beta_0+\beta_1x_1+\beta_2x_2+\beta_{12}x_1x_2.
+  \]
+  \textbf{Ejemplo:} lluvia $\times$ hora pico puede representar que la lluvia afecta más la circulación cuando la red está congestionada.
+  \begin{itemize}
+    \item Priorizar combinaciones con una explicación operativa.
+    \item Verificar que existan suficientes observaciones de la combinación.
+    \item Comparar su aporte fuera de muestra.
+  \end{itemize}
+  \begin{alertblock}{Escala del problema}
+    Con 100 variables existen 4950 interacciones por pares: generar todas aumenta capacidad y riesgo de sobreajuste.
+  \end{alertblock}
+\end{frame}
+
+% 7
+\begin{frame}{Selección de atributos}
+  \footnotesize
+  Seleccionar atributos conserva un subconjunto de las variables disponibles.
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.18\textwidth} p{.3\textwidth} X}
+    \toprule Familia & Estrategia & Limitación principal \\ \midrule
+    Filtro & puntuar antes del modelo final & puede ignorar interacciones \\
+    Envolvente & comparar subconjuntos con el modelo & costo y sobreajuste de la búsqueda \\
+    Embebida & seleccionar durante el ajuste & depende del modelo y la escala \\
+    \bottomrule
+  \end{tabularx}
+  \vspace{.4em}
+  Relevancia no equivale a causalidad. Dos variables correlacionadas pueden sustituirse y cambiar de posición entre muestras.
+  \begin{block}{Regla}
+    Cualquier selección basada en datos se ajusta dentro de cada fold.
+  \end{block}
+\end{frame}
+
+% 8
+\begin{frame}{Reducción dimensional y PCA}
+  \small
+  La selección conserva columnas originales; la reducción construye nuevas coordenadas $Z=g(X)$ con $q<p$.
+  \vspace{.35em}
+
+  En PCA, los componentes son direcciones ortogonales ordenadas por varianza. Si los autovalores son $(4{,}2;2{,}1;0{,}7)$:
+  \[
+    \mathrm{PVE}_1=4{,}2/7=60\%,\qquad
+    \mathrm{PVE}_{1:2}=6{,}3/7=90\%.
+  \]
+  \begin{alertblock}{Límite}
+    Conservar 90\% de la varianza no garantiza conservar 90\% de la capacidad predictiva. Una señal rara puede encontrarse en una dirección de baja varianza.
+  \end{alertblock}
+\end{frame}
+
+% 9
+\begin{frame}{El pipeline completo es la unidad evaluada}
+  \footnotesize
+  \begin{center}
+  \begin{tikzpicture}[node distance=3.5mm,scale=.64,transform shape]
+    \node[datum] (d) {Datos}; \node[process,right=of d] (i) {Imputación};
+    \node[process,right=of i] (c) {Codificación}; \node[process,right=of c] (e) {Escala};
+    \node[process,right=of e] (s) {Selección\br o PCA}; \node[decision,right=of s] (m) {Modelo};
+    \draw[flow] (d)--(i); \draw[flow] (i)--(c); \draw[flow] (c)--(e); \draw[flow] (e)--(s); \draw[flow] (s)--(m);
+  \end{tikzpicture}
+  \end{center}
+  En cada partición:
+  \begin{enumerate}
+    \item ajustar transformaciones únicamente con entrenamiento;
+    \item aplicar esos parámetros a validación;
+    \item ajustar el modelo con la representación transformada;
+    \item medir sobre los casos reservados.
+  \end{enumerate}
+  \begin{block}{Inferencia}
+    Se reutilizan medias, categorías, columnas seleccionadas y componentes aprendidos; no se vuelven a ajustar.
+  \end{block}
+\end{frame}
+
+% 10
+\begin{frame}{Caso integrado: anticipar un bloqueo}
+  \scriptsize
+  Un vehículo debe estimar, antes de ingresar, si un tramo quedará bloqueado en los próximos 15 minutos.
+  \begin{tabularx}{\textwidth}{p{.2\textwidth} p{.36\textwidth} X}
+    \toprule Datos brutos & Características candidatas & Control necesario \\ \midrule
+    fecha y hora & seno/coseno de hora; día hábil & calendario disponible \\
+    lluvia reciente & acumulado causal; indicador intenso & corte en el instante de decisión \\
+    velocidades previas & media y tendencia anteriores & excluir mediciones futuras \\
+    tramo y red & tipo de vía; centralidad; desvío & política para tramos nuevos \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Actividad}
+    Proponer una interacción útil, una variable que causaría fuga y una prueba para detectar una diferencia entre entrenamiento e inferencia.
+  \end{block}
+\end{frame}
+
+\end{document}
