@@ -61,7 +61,21 @@ La razón facilita comparar zonas de tamaños distintos, pero necesita una regla
 - Las categorías ordinales admiten orden, pero no necesariamente intervalos iguales.
 - Los niveles raros y desconocidos necesitan una política explícita.
 
-**Control:** una categoría nueva puede indicar cambio de población; reemplazarla silenciosamente por la más frecuente oculta ese cambio.
+---
+
+# Categoría desconocida: ejemplo y cuidados
+
+El modelo se entrenó con `zona ∈ {norte, centro, sur}` y durante el uso aparece `oeste`.
+
+**Tratamiento riesgoso:** un pipeline configurado para sustituir valores no reconocidos por la categoría más frecuente podría codificar `oeste` como `norte`. Esta sustitución evita un error técnico, pero no existe evidencia de que ambas zonas se comporten igual y se oculta una posible diferencia entre entrenamiento y uso.
+
+**Cuidados necesarios:**
+
+- distinguir una categoría nueva de un dato faltante;
+- comprobar si se debe a un error de escritura, una fuente nueva o una ampliación de la población;
+- representarla como `desconocida` u `otra` mediante un codificador preparado para niveles no vistos;
+- registrar su frecuencia y revisar el desempeño del modelo en esos casos;
+- actualizar y reevaluar el modelo si la categoría se vuelve habitual.
 
 ---
 
@@ -110,6 +124,54 @@ Seleccionar atributos conserva un subconjunto de las variables disponibles.
 Relevancia no equivale a causalidad. Dos variables correlacionadas pueden sustituirse y cambiar de posición entre muestras.
 
 **Regla:** cualquier selección basada en datos se ajusta dentro de cada fold.
+
+---
+
+# Métodos de filtro
+
+Los filtros puntúan atributos sin entrenar repetidamente el modelo final.
+
+| Criterio | Qué busca | Ejemplo |
+|---|---|---|
+| Varianza | columnas constantes o casi constantes | retirar un sensor que siempre informa `1` |
+| Asociación | correlación lineal, relación monótona o asociación categórica con $y$ | ordenar velocidad según su asociación con bloqueo |
+| Información mutua | dependencia lineal o no lineal con $y$ | detectar señal aportada por lluvia |
+
+**Ejemplo ilustrativo:** información mutua con bloqueo: `velocidad = 0,31`, `lluvia = 0,18`, `hora = 0,05`, `identificador = 0,01`. Un selector `top-2` conservaría velocidad y lluvia.
+
+**Cuidados:** el número de atributos se valida; un filtro univariado puede perder interacciones y todo filtro que usa $y$ se ajusta dentro de cada fold.
+
+---
+
+# Métodos envolventes
+
+Evalúan subconjuntos entrenando el modelo que finalmente se utilizará.
+
+| Método | Procedimiento |
+|---|---|
+| Selección hacia adelante | comienza sin atributos y agrega el que más mejora validación |
+| Eliminación hacia atrás | comienza con todos y retira el menos útil |
+| RFE | ajusta, ordena, elimina los menos importantes y repite |
+
+**Ejemplo:** con selección hacia adelante, `velocidad` obtiene $F_1=0,71$; al agregar `lluvia`, $F_1=0,78$; agregar `hora` mantiene $F_1=0,78$. Si la regla exige una mejora mínima de 0,01, se conservan dos atributos.
+
+**Cuidados:** son costosos, no garantizan el mejor subconjunto y pueden sobreajustar la validación después de probar muchas alternativas. La búsqueda se realiza en el ciclo interno de validación.
+
+---
+
+# Métodos embebidos
+
+La selección ocurre durante el ajuste del modelo.
+
+| Método | Mecanismo | Ejemplo de selección |
+|---|---|---|
+| Lasso o L1 | produce algunos coeficientes exactamente iguales a cero | descarta entradas con coeficiente cero |
+| Elastic Net | combina L1 y L2 | estabiliza grupos correlacionados |
+| Árbol | utiliza atributos para construir divisiones | conserva variables presentes en ramas válidas |
+
+**Ejemplo ilustrativo:** después de estandarizar, una regresión logística con L1 produce `velocidad = -1,20`, `lluvia = 0,70`, `hora = 0` e `identificador = 0`. Bajo la regla definida, conserva velocidad y lluvia.
+
+**Cuidados:** la penalización y la escala se ajustan dentro de cada fold. Variables correlacionadas pueden sustituirse de forma inestable y un cero no demuestra irrelevancia causal.
 
 ---
 

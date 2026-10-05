@@ -553,35 +553,6 @@ Dos alternativas se comparan con las mismas:
 
 ---
 
-# Actividad integradora: diseñar antes de modelar
-
-Todos los equipos usan una plantilla común y la aplican a su proyecto. El robot o vehículo que estima un bloqueo funciona como caso de referencia compartido.
-
-1. Escriban decisión, salida predictiva y regla de acción por separado.
-2. Definan unidad, población, $t_0$, horizonte, $x$, $y$ y fuente de confirmación.
-3. Marquen tres riesgos de fuga: temporal, preprocesamiento y entidad.
-4. Registren partición, baseline y métrica principal en la plantilla común; justifiquen cada elección por el uso.
-
-**Producto de trabajo:** una ficha experimental de una página y un esquema del flujo de datos.
-
----
-
-# Hito semanal y entregable
-
-Entregable del equipo:
-
-| Sección | Evidencia mínima |
-|---|---|
-| Formulación | decisión, $\hat y$, acción, unidad, población, $t_0$, $H$, $x$, $y$ |
-| Partición | diagrama de entrenamiento, validación y prueba con justificación |
-| Controles | fugas identificadas y transformaciones dentro del fold |
-| Evaluación | baseline y métrica principal fijados antes de comparar; costo relevante |
-| Reproducción | versión de datos, semillas y procedimiento congelado |
-
-**Hito:** otro equipo debe poder aplicar los mismos criterios, detectar información indebida y reproducir la evaluación propuesta.
-
----
-
 # Síntesis
 
 **Flujo:** `decisión -> definición del problema -> partición -> baseline -> procedimiento -> validación -> prueba final -> acción`.

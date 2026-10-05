@@ -123,12 +123,28 @@
     \item Las categorías ordinales admiten orden, pero no necesariamente intervalos iguales.
     \item Los niveles raros y desconocidos necesitan una política explícita.
   \end{itemize}
-  \begin{alertblock}{Control}
-    Una categoría nueva puede indicar cambio de población; reemplazarla silenciosamente por la más frecuente oculta ese cambio.
-  \end{alertblock}
 \end{frame}
 
 % 5
+\begin{frame}{Categoría desconocida: ejemplo y cuidados}
+  \footnotesize
+  \begin{block}{Caso}
+    El modelo se entrenó con \texttt{zona} $\in \{\texttt{norte},\texttt{centro},\texttt{sur}\}$ y durante el uso aparece \texttt{oeste}.
+  \end{block}
+  \begin{alertblock}{Tratamiento riesgoso}
+    Un pipeline configurado para sustituir valores no reconocidos por la categoría más frecuente podría codificar \texttt{oeste} como \texttt{norte}. Esto evita un error técnico, pero no demuestra que ambas zonas se comporten igual y oculta una posible diferencia entre entrenamiento y uso.
+  \end{alertblock}
+  \textbf{Cuidados necesarios}
+  \begin{itemize}
+    \item distinguir una categoría nueva de un dato faltante;
+    \item comprobar si proviene de un error, una fuente nueva o una ampliación de la población;
+    \item representarla como \texttt{desconocida} u \texttt{otra} con un codificador preparado;
+    \item registrar su frecuencia y revisar el desempeño del modelo en esos casos;
+    \item actualizar y reevaluar el modelo si la categoría se vuelve habitual.
+  \end{itemize}
+\end{frame}
+
+% 6
 \begin{frame}{Tiempo y espacio}
   \small
   Para una posición temporal $t$ dentro de un periodo $P$:
@@ -141,7 +157,7 @@
   En espacio pueden utilizarse distancias, pertenencia a zonas, accesibilidad o conectividad. La distancia geométrica no siempre representa tiempo de viaje ni transferencia del fenómeno.
 \end{frame}
 
-% 6
+% 7
 \begin{frame}{Interacciones y conocimiento del dominio}
   \footnotesize
   Una interacción representa que el efecto de una variable depende de otra:
@@ -159,7 +175,7 @@
   \end{alertblock}
 \end{frame}
 
-% 7
+% 8
 \begin{frame}{Selección de atributos}
   \footnotesize
   Seleccionar atributos conserva un subconjunto de las variables disponibles.
@@ -177,7 +193,64 @@
   \end{block}
 \end{frame}
 
-% 8
+% 9
+\begin{frame}{Métodos de filtro}
+  \footnotesize
+  Los filtros puntúan atributos sin entrenar repetidamente el modelo final.
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.2\textwidth}p{.31\textwidth}X}
+    \toprule Criterio & Qué busca & Ejemplo \\ \midrule
+    Varianza & columnas constantes o casi constantes & retirar un sensor que siempre informa 1 \\
+    Asociación & correlación lineal, relación monótona o asociación categórica con $y$ & ordenar velocidad por su asociación con bloqueo \\
+    Información mutua & dependencia lineal o no lineal con $y$ & detectar señal aportada por lluvia \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Ejemplo ilustrativo}
+    Información mutua con bloqueo: velocidad $=0{,}31$, lluvia $=0{,}18$, hora $=0{,}05$ e identificador $=0{,}01$. Un selector \textit{top-2} conservaría velocidad y lluvia.
+  \end{block}
+  \begin{alertblock}{Cuidados}
+    El número de atributos se valida; un filtro univariado puede perder interacciones y todo filtro que usa $y$ se ajusta dentro de cada fold.
+  \end{alertblock}
+\end{frame}
+
+% 10
+\begin{frame}{Métodos envolventes}
+  \footnotesize
+  Evalúan subconjuntos entrenando el modelo que finalmente se utilizará.
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.27\textwidth}X}
+    \toprule Método & Procedimiento \\ \midrule
+    Selección hacia adelante & comienza sin atributos y agrega el que más mejora validación \\
+    Eliminación hacia atrás & comienza con todos y retira el menos útil \\
+    RFE & ajusta, ordena, elimina los menos importantes y repite \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Ejemplo}
+    Con selección hacia adelante, velocidad obtiene $F_1=0{,}71$; al agregar lluvia, $F_1=0{,}78$; agregar hora mantiene $F_1=0{,}78$. Si la regla exige una mejora mínima de 0,01, se conservan dos atributos.
+  \end{block}
+  \begin{alertblock}{Cuidados}
+    Son costosos, no garantizan el mejor subconjunto y pueden sobreajustar la validación. La búsqueda se realiza en el ciclo interno de validación.
+  \end{alertblock}
+\end{frame}
+
+% 11
+\begin{frame}{Métodos embebidos}
+  \footnotesize
+  La selección ocurre durante el ajuste del modelo.
+  \begin{tabularx}{\textwidth}{>{\bfseries}p{.2\textwidth}p{.3\textwidth}X}
+    \toprule Método & Mecanismo & Ejemplo de selección \\ \midrule
+    Lasso o L1 & produce algunos coeficientes iguales a cero & descarta entradas con coeficiente cero \\
+    Elastic Net & combina L1 y L2 & estabiliza grupos correlacionados \\
+    Árbol & utiliza atributos para construir divisiones & conserva variables presentes en ramas válidas \\
+    \bottomrule
+  \end{tabularx}
+  \begin{block}{Ejemplo ilustrativo}
+    Tras estandarizar, una regresión logística con L1 produce: velocidad $=-1{,}20$, lluvia $=0{,}70$, hora $=0$ e identificador $=0$. Bajo la regla definida, conserva velocidad y lluvia.
+  \end{block}
+  \begin{alertblock}{Cuidados}
+    Penalización y escala se ajustan dentro de cada fold. Variables correlacionadas pueden sustituirse de forma inestable y un cero no demuestra irrelevancia causal.
+  \end{alertblock}
+\end{frame}
+
+% 12
 \begin{frame}{Reducción dimensional y PCA}
   \small
   La selección conserva columnas originales; la reducción construye nuevas coordenadas $Z=g(X)$ con $q<p$.
@@ -193,7 +266,7 @@
   \end{alertblock}
 \end{frame}
 
-% 9
+% 13
 \begin{frame}{El pipeline completo es la unidad evaluada}
   \footnotesize
   \begin{center}
@@ -216,7 +289,7 @@
   \end{block}
 \end{frame}
 
-% 10
+% 14
 \begin{frame}{Caso integrado: anticipar un bloqueo}
   \scriptsize
   Un vehículo debe estimar, antes de ingresar, si un tramo quedará bloqueado en los próximos 15 minutos.
