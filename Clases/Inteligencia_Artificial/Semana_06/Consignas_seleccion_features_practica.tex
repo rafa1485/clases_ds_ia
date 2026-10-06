@@ -1,0 +1,322 @@
+% Practicas de seleccion de variables con redes neuronales
+% Compilar desde este directorio con:
+%   pdflatex Consignas_seleccion_features_practica.tex
+%   pdflatex Consignas_seleccion_features_practica.tex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{UAPNavy}{HTML}{17324D}
+\definecolor{UAPTeal}{HTML}{007F82}
+\definecolor{UAPGold}{HTML}{E2A33A}
+\definecolor{UAPLight}{HTML}{F3F6F8}
+\definecolor{UAPGray}{HTML}{536471}
+\definecolor{UAPRed}{HTML}{A94343}
+
+\renewcommand{\UrlFont}{\small\ttfamily}
+\Urlmuskip=0mu plus 2mu
+\setlist{itemsep=.25em,topsep=.4em}
+
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{UAPTeal}\bfseries,
+  commentstyle=\color{UAPGray}\itshape,
+  stringstyle=\color{UAPRed},
+  backgroundcolor=\color{UAPLight},
+  frame=single,
+  rulecolor=\color{UAPGray!60},
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  aboveskip=.8em,
+  belowskip=.8em,
+  literate=
+    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+    {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+
+\newcommand{\cod}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\bloquesec}[1]{\section{#1}}
+\newcommand{\apartado}[1]{\subsection*{#1}}
+
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-2.8ex \@plus -1ex \@minus -.2ex}%
+  {1.6ex \@plus.2ex}%
+  {\normalfont\LARGE\bfseries\color{UAPNavy}}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-2.2ex \@plus -.6ex \@minus -.2ex}%
+  {1.1ex \@plus.2ex}%
+  {\normalfont\Large\bfseries\color{UAPTeal}}}
+\makeatother
+
+\begin{document}
+
+\thispagestyle{empty}
+\begin{center}
+  {\color{UAPTeal}\footnotesize\bfseries GUÍA DE PRÁCTICAS}\\[0.4em]
+  {\color{UAPNavy}\LARGE\bfseries Selección de variables con redes neuronales}\\[0.25em]
+  {\color{UAPGray}\large Comparación de representaciones para regresión y clasificación}\\[0.9em]
+  \textcolor{UAPGold}{\rule{0.45\linewidth}{1.4pt}}
+\end{center}
+
+\vspace{0.6em}
+\noindent\colorbox{UAPLight}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+  \textbf{Curso:} Inteligencia Artificial \quad$\bullet$\quad \textbf{Semana y clase:} semana 6, clase 6\\[0.25em]
+  \textbf{Tema:} ingeniería y selección de características.\\
+  \textbf{Entorno de trabajo:} Jupyter Notebook con Python y \cod{scikit-learn}.\\
+  \textbf{Modalidad:} comparación reproducible de redes neuronales con distintas selecciones de variables.%
+}}
+
+\vspace{1em}
+Las actividades se desarrollarán en notebooks de Jupyter con Python y \cod{scikit-learn}. En ambos casos se deberá comparar una RNA entrenada con todas las variables contra la misma arquitectura entrenada con un subconjunto seleccionado. La selección de variables debe realizarse usando solamente datos de entrenamiento.
+
+\vspace{.8em}
+\tableofcontents
+\newpage
+
+\bloquesec{Consigna 1. Regresión temporal del consumo de electrodomésticos}
+
+\apartado{Dataset}
+
+\textbf{Appliances Energy Prediction}, UCI Machine Learning Repository. Contiene 19.735 registros tomados cada 10 minutos, 28 variables predictoras y el consumo \cod{Appliances} como objetivo en Wh.
+
+\begin{itemize}
+  \item \textbf{Fuente:} \url{https://archive.ics.uci.edu/dataset/374/appliances-energy-prediction}
+  \item \textbf{Licencia:} CC BY 4.0.
+\end{itemize}
+
+\apartado{Objetivo}
+
+Explorar las variables ambientales y temporales, seleccionar un subconjunto informativo y ajustar una red neuronal artificial para predecir el consumo de electrodomésticos.
+
+\apartado{Actividades}
+
+\begin{enumerate}
+  \item Descargar los datos, ordenar los registros por \cod{date} y describir las variables.
+  \item Transformar \cod{date} en atributos utilizables, como hora y día de la semana. No ingresar la fecha como texto en la red.
+  \item Explorar asociaciones con \cod{Appliances}, redundancias entre sensores y el comportamiento de \cod{rv1} y \cod{rv2}.
+  \item Proponer al menos dos subconjuntos de variables mediante técnicas como correlación, información mutua, importancia por permutación o regularización.
+  \item Comparar, con la misma arquitectura, una RNA con todas las variables y otra con el subconjunto elegido.
+  \item Separar entrenamiento, validación y prueba respetando el orden temporal. No utilizar la prueba para seleccionar variables.
+  \item Evaluar con MAE, RMSE y $R^2$. Justificar la selección final y discutir estabilidad, redundancia y posibles fugas.
+\end{enumerate}
+
+\apartado{Código inicial: descarga y preparación}
+
+\begin{lstlisting}
+%pip install ucimlrepo
+
+import numpy as np
+import pandas as pd
+from ucimlrepo import fetch_ucirepo
+
+energy = fetch_ucirepo(id=374)
+
+X_raw = energy.data.features.copy()
+y_raw = energy.data.targets.squeeze().astype(float)
+
+df = X_raw.copy()
+df["Appliances"] = y_raw.to_numpy()
+df["date"] = pd.to_datetime(df["date"])
+df = df.sort_values("date").reset_index(drop=True)
+
+# Atributos temporales básicos
+df["hour_sin"] = np.sin(2 * np.pi * df["date"].dt.hour / 24)
+df["hour_cos"] = np.cos(2 * np.pi * df["date"].dt.hour / 24)
+df["day_of_week"] = df["date"].dt.dayofweek
+
+y = df.pop("Appliances")
+X = df.drop(columns="date")
+
+print(X.shape)
+display(X.head())
+\end{lstlisting}
+
+\apartado{Código inicial: RNA de regresión}
+
+\begin{lstlisting}
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.neural_network import MLPRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+# Partición cronológica 70 % / 15 % / 15 %
+n = len(X)
+fin_train = int(0.70 * n)
+fin_val = int(0.85 * n)
+
+X_train, y_train = X.iloc[:fin_train], y.iloc[:fin_train]
+X_val, y_val = X.iloc[fin_train:fin_val], y.iloc[fin_train:fin_val]
+X_test, y_test = X.iloc[fin_val:], y.iloc[fin_val:]
+
+# Comenzar con todas y reemplazar después por el subconjunto seleccionado
+selected_features = list(X.columns)
+
+rna_reg = Pipeline([
+    ("scaler", StandardScaler()),
+    ("mlp", MLPRegressor(
+        hidden_layer_sizes=(64, 32),
+        activation="relu",
+        max_iter=800,
+        shuffle=False,
+        random_state=42
+    ))
+])
+
+rna_reg.fit(X_train[selected_features], y_train)
+pred_val = rna_reg.predict(X_val[selected_features])
+
+mae = mean_absolute_error(y_val, pred_val)
+rmse = np.sqrt(mean_squared_error(y_val, pred_val))
+r2 = r2_score(y_val, pred_val)
+
+print({"MAE": mae, "RMSE": rmse, "R2": r2})
+\end{lstlisting}
+
+El conjunto de prueba deberá evaluarse una sola vez, después de seleccionar variables y congelar la configuración.
+
+\apartado{Entrega}
+
+\begin{itemize}
+  \item Notebook ejecutable.
+  \item Ranking o análisis de relevancia y redundancia.
+  \item Comparación entre todas las variables y los subconjuntos candidatos.
+  \item Lista final de variables con justificación.
+  \item Métricas de validación y prueba, más una conclusión breve.
+\end{itemize}
+
+\newpage
+\bloquesec{Consigna 2. Clasificación no temporal de diagnósticos}
+
+\apartado{Dataset}
+
+\textbf{Breast Cancer Wisconsin (Diagnostic)}, UCI Machine Learning Repository. Contiene 569 observaciones, 30 características numéricas y la etiqueta \cod{Diagnosis}: maligno (\cod{M}) o benigno (\cod{B}).
+
+\begin{itemize}
+  \item \textbf{Fuente:} \url{https://archive.ics.uci.edu/dataset/17/breast-cancer-wisconsin-diagnostic}
+  \item \textbf{Licencia:} CC BY 4.0.
+  \item Uso exclusivamente educativo; los resultados no constituyen una herramienta clínica.
+\end{itemize}
+
+\apartado{Objetivo}
+
+Explorar las 30 características, identificar variables relevantes o redundantes y ajustar una red neuronal artificial para clasificar el diagnóstico.
+
+\apartado{Actividades}
+
+\begin{enumerate}
+  \item Descargar los datos, verificar clases, escalas y correlaciones. Excluir cualquier identificador.
+  \item Analizar la redundancia entre medidas de radio, perímetro, área, textura y sus diferentes resúmenes.
+  \item Proponer al menos dos subconjuntos mediante técnicas como ANOVA, información mutua, RFE, regularización L1 o importancia por permutación.
+  \item Comparar, con la misma arquitectura y particiones, una RNA con las 30 variables y otra con el subconjunto elegido.
+  \item Realizar una partición estratificada. Ajustar escalado y selección usando solamente entrenamiento.
+  \item Evaluar con accuracy, precisión, recall, F1 y matriz de confusión. Prestar especial atención a los casos malignos no detectados.
+  \item Justificar la selección final considerando desempeño, estabilidad y cantidad de variables.
+\end{enumerate}
+
+\apartado{Código inicial: descarga y preparación}
+
+\begin{lstlisting}
+%pip install ucimlrepo
+
+import pandas as pd
+from ucimlrepo import fetch_ucirepo
+
+cancer = fetch_ucirepo(id=17)
+
+X = cancer.data.features.copy()
+X = X.drop(columns=["ID"], errors="ignore")
+y = cancer.data.targets.squeeze().map({"B": 0, "M": 1})
+
+print(X.shape)
+print(y.value_counts())
+display(X.head())
+\end{lstlisting}
+
+\apartado{Código inicial: RNA de clasificación}
+
+\begin{lstlisting}
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    f1_score
+)
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+# Prueba final estratificada
+X_dev, X_test, y_dev, y_test = train_test_split(
+    X, y,
+    test_size=0.20,
+    stratify=y,
+    random_state=42
+)
+
+# Validación estratificada dentro del conjunto de desarrollo
+X_train, X_val, y_train, y_val = train_test_split(
+    X_dev, y_dev,
+    test_size=0.25,
+    stratify=y_dev,
+    random_state=42
+)
+
+# Comenzar con todas y reemplazar después por el subconjunto seleccionado
+selected_features = list(X.columns)
+
+rna_clf = Pipeline([
+    ("scaler", StandardScaler()),
+    ("mlp", MLPClassifier(
+        hidden_layer_sizes=(32, 16),
+        activation="relu",
+        max_iter=1000,
+        random_state=42
+    ))
+])
+
+rna_clf.fit(X_train[selected_features], y_train)
+pred_val = rna_clf.predict(X_val[selected_features])
+
+print("Accuracy:", accuracy_score(y_val, pred_val))
+print("F1:", f1_score(y_val, pred_val))
+print("Matriz de confusión:\n", confusion_matrix(y_val, pred_val))
+print(classification_report(y_val, pred_val, target_names=["Benigno", "Maligno"]))
+\end{lstlisting}
+
+El conjunto de prueba deberá permanecer reservado hasta finalizar la selección de variables y la configuración de la RNA.
+
+\apartado{Entrega}
+
+\begin{itemize}
+  \item Notebook ejecutable.
+  \item Análisis de correlación, relevancia y redundancia.
+  \item Comparación entre las 30 variables y los subconjuntos candidatos.
+  \item Lista final de variables con justificación.
+  \item Métricas, matriz de confusión y conclusión breve.
+\end{itemize}
+
+\bloquesec{Criterio común de comparación}
+
+\noindent\colorbox{UAPLight}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+En cada práctica, cambiar únicamente el conjunto de variables. La arquitectura, particiones, semilla, preprocesamiento y métricas deben permanecer constantes. De este modo, la diferencia observada puede atribuirse razonablemente a la selección de features y no a un cambio simultáneo del experimento.%
+}}
+
+\end{document}
