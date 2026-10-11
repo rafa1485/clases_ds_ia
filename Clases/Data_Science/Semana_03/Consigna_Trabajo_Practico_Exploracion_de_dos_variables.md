@@ -108,7 +108,7 @@ Acá la columna `pickup_hora` se usa como eje ordenado en el tiempo, no como un 
 
 ## 3. Pares preaprobados
 
-Elegí libremente uno de los siguientes pares de columnas preaprobados: la selección queda en tus manos, no te lo asigna el docente. Un mismo par puede ser elegido por más de un estudiante, así que no hay problema si coincide con el de un compañero. Eso sí: una vez que decidas cuál vas a trabajar, registralo por escrito en el notebook (punto 6 de la sección 1, y contrato del análisis en la sección 5) antes de empezar a explorar los datos, y sostené esa elección durante todo el trabajo.
+Elegí libremente uno de los siguientes pares de columnas preaprobados: la selección queda en tus manos, no te lo asigna el docente. Un mismo par puede ser elegido por más de un estudiante, así que no hay problema si coincide con el de un compañero. Eso sí: una vez que decidas cuál vas a trabajar, registralo por escrito en el notebook (punto 6 de la sección 1, y definición del análisis en la sección 5) antes de empezar a explorar los datos, y sostené esa elección durante todo el trabajo.
 
 ### Pickups y clima
 
@@ -159,7 +159,7 @@ La siguiente tabla lista combinaciones que **no** tienen sentido analizar de la 
 
 <div class="page-break"></div>
 
-## 5. Contrato del análisis
+## 5. Definición del análisis
 
 > **Nota:** completar esta tabla antes de calcular nada te obliga a definir con precisión qué vas a medir, sobre qué población y con qué alcance. Es una forma de comprometerte con un plan antes de ver los resultados, para no terminar "acomodando" el análisis a lo que más te convenga después.
 
@@ -306,7 +306,7 @@ Redactar como mínimo:
 
 Cada hallazgo debe contener:
 
-- **contrato:** población, unidad y periodo a los que se refiere;
+- **definición:** población, unidad y periodo a los que se refiere;
 - **observación:** respaldada por una tabla o figura concreta, no solo una afirmación suelta;
 - **cobertura:** faltantes y denominador (sobre cuántos casos válidos se basa la observación);
 - **interpretación:** proporcional a la evidencia (no exageres lo que el dato realmente muestra);
@@ -322,7 +322,7 @@ Entregar una copia ejecutable del notebook con:
 
 - identificación del estudiante y del par elegido;
 - ejecución reproducible para enero completo (que corra de punta a punta sin errores);
-- contrato del análisis (sección 5);
+- definición del análisis (sección 5);
 - construcción y validación de la vista requerida (sección 2);
 - dos análisis univariados (uno por columna, sección 6);
 - tabla de casos potencialmente anómalos (sección 7);

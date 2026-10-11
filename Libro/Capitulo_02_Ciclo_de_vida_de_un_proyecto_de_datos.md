@@ -457,7 +457,7 @@ Los entregables no son informes congelados. La ficha del problema, el diccionari
 
 #### Relación con operación y MLOps
 
-CRISP-DM suele describirse hasta “despliegue”, pero un sistema operativo necesita monitoreo, gestión de incidentes, reentrenamiento y retirada. Estas prácticas se asocian con MLOps, aunque sus principios son más generales: automatizar lo repetible, verificar contratos, versionar artefactos y observar comportamiento. No deben agregarse al final; los requisitos de operación influyen desde la formulación.
+CRISP-DM suele describirse hasta “despliegue”, pero un sistema operativo necesita monitoreo, gestión de incidentes, reentrenamiento y retirada. Estas prácticas se asocian con MLOps, aunque sus principios son más generales: automatizar lo repetible, verificar especificaciones, versionar artefactos y observar comportamiento. No deben agregarse al final; los requisitos de operación influyen desde la formulación.
 
 ### 2.2.3. Ciclos iterativos y enfoques ágiles
 
@@ -594,7 +594,7 @@ Una empresa de servicios técnicos quiere priorizar el mantenimiento de ascensor
 
 #### Comprensión del problema
 
-El equipo define una decisión diaria: seleccionar los ascensores que recibirán mantenimiento preventivo durante los próximos siete días, además de las atenciones urgentes exigidas por contrato o seguridad. La unidad de decisión es ascensor-semana y la salida será una lista priorizada con motivo, nivel de riesgo y fecha sugerida. Los usuarios directos son planificadores y técnicos; residentes, visitantes y personal de los edificios son actores afectados.
+El equipo define una decisión diaria: seleccionar los ascensores que recibirán mantenimiento preventivo durante los próximos siete días, además de las atenciones urgentes exigidas por el acuerdo de servicio o por seguridad. La unidad de decisión es ascensor-semana y la salida será una lista priorizada con motivo, nivel de riesgo y fecha sugerida. Los usuarios directos son planificadores y técnicos; residentes, visitantes y personal de los edificios son actores afectados.
 
 Se documentan capacidad, competencias, repuestos, horarios de acceso, tiempos de traslado y acuerdos de nivel de servicio. El éxito no se formula como “predecir averías”, sino como reducir inmovilizaciones y rescates sin aumentar horas extraordinarias ni demorar avisos urgentes. La regla vigente, basada en periodicidad y antigüedad, queda registrada como baseline operativo.
 
@@ -683,9 +683,9 @@ Una base operativa está diseñada para registrar transacciones con consistencia
 
 Por eso, las dimensiones que cambian necesitan vigencia o historial. El analista debe decidir si utiliza el valor actual, el valor al momento del evento o ambos. La respuesta depende de la pregunta y debe quedar en la procedencia.
 
-#### Contratos y evolución de esquema
+#### Especificaciones y evolución de esquema
 
-Un contrato de datos especifica nombres, tipos, unidades, claves, nulabilidad y semántica. Cuando el esquema cambia, se determina si el cambio es compatible. Agregar una columna opcional puede serlo; cambiar la unidad sin cambiar el nombre no lo es.
+Una especificación de datos establece nombres, tipos, unidades, claves, nulabilidad y semántica. Cuando el esquema cambia, se determina si el cambio es compatible. Agregar una columna opcional puede serlo; cambiar la unidad sin cambiar el nombre no lo es.
 
 Las migraciones deben probarse sobre consumidores. Un pipeline que tolera cualquier columna faltante puede continuar ejecutándose y producir resultados incompletos. Fallar temprano ante una ruptura crítica suele ser más seguro que completar silenciosamente con nulos.
 
@@ -709,7 +709,7 @@ Una práctica robusta conserva el documento original, valida contra un esquema e
 
 Convertir objetos anidados en columnas requiere definir qué hacer con listas. Si un reclamo contiene varias categorías, expandirlo puede producir varias filas y cambiar la unidad. Concatenar categorías conserva una fila, pero crea un campo complejo. Crear una tabla relacional separada suele preservar mejor la relación muchos-a-muchos.
 
-El valor `null`, una clave ausente y una lista vacía no son necesariamente equivalentes. `null` puede indicar que se conocía el campo pero no el valor; ausencia puede corresponder a una versión anterior; lista vacía puede significar que se evaluó y no hubo elementos. Homogeneizarlos sin consultar el contrato destruye información.
+El valor `null`, una clave ausente y una lista vacía no son necesariamente equivalentes. `null` puede indicar que se conocía el campo pero no el valor; ausencia puede corresponder a una versión anterior; lista vacía puede significar que se evaluó y no hubo elementos. Homogeneizarlos sin consultar la especificación destruye información.
 
 #### Eventos y reconstrucción de estado
 
@@ -834,7 +834,7 @@ Los archivos deben acompañarse con tamaño, suma de comprobación, codificació
 
 #### APIs
 
-Una API expone datos mediante solicitudes. Puede aplicar autenticación, paginación, límites, filtros y versiones. La extracción debe manejar respuestas incompletas, reintentos, errores, duplicados y cambios de contrato.
+Una API expone datos mediante solicitudes. Puede aplicar autenticación, paginación, límites, filtros y versiones. La extracción debe manejar respuestas incompletas, reintentos, errores, duplicados y cambios de especificación.
 
 El hecho de recibir una respuesta correcta no garantiza que se obtuvo todo el universo. Se debe verificar paginación, cobertura y hora de actualización. También se debe respetar la licencia y los límites del servicio.
 
@@ -848,7 +848,7 @@ Los flujos suelen procesarse mediante ventanas. Una ventana de diez minutos pued
 
 Cada medio falla de manera distinta. Una base puede devolver una vista cambiante; un archivo puede quedar truncado; una API puede responder parcialmente con estado exitoso; un sensor puede quedar congelado en un valor plausible. Los controles deben diseñarse para esos fallos, no limitarse a verificar que “hay datos”.
 
-Una extracción robusta registra cantidad esperada, páginas, rango temporal, esquema y checksum. Los reintentos son idempotentes: repetir no duplica. Los errores transitorios se distinguen de rupturas de contrato. El sistema conserva un punto de control para continuar sin perder ni repetir periodos.
+Una extracción robusta registra cantidad esperada, páginas, rango temporal, esquema y checksum. Los reintentos son idempotentes: repetir no duplica. Los errores transitorios se distinguen de incumplimientos de la especificación. El sistema conserva un punto de control para continuar sin perder ni repetir periodos.
 
 #### Tiempo de evento, procesamiento y decisión
 
@@ -892,7 +892,7 @@ Cuando la escala exige distribuir, se decide la clave de partición. Una mala cl
 
 #### Calidad a escala
 
-La validación completa puede ser costosa. Se combinan contratos deterministas, métricas agregadas, muestreo y controles por partición. Los resultados de calidad son productos de primera clase: deben consultarse por fecha y fuente.
+La validación completa puede ser costosa. Se combinan especificaciones deterministas, métricas agregadas, muestreo y controles por partición. Los resultados de calidad son productos de primera clase: deben consultarse por fecha y fuente.
 
 El linaje permite responder qué salidas dependen de una fuente defectuosa. Sin linaje, corregir un archivo obliga a adivinar qué tablas, modelos e informes deben regenerarse. A gran escala, la trazabilidad deja de ser documentación opcional y se convierte en requisito operativo.
 
@@ -957,7 +957,7 @@ La elección debe considerar:
 - soporte y mantenimiento;
 - requisitos de auditoría.
 
-Una organización puede utilizar ambos mediante formatos interoperables y contratos claros. El riesgo no es la diversidad por sí misma, sino la falta de definición de entradas, salidas y versiones.
+Una organización puede utilizar ambos mediante formatos interoperables y especificaciones claras. El riesgo no es la diversidad por sí misma, sino la falta de definición de entradas, salidas y versiones.
 
 Los conceptos deben permanecer agnósticos del lenguaje. Una partición temporal, una imputación ajustada en entrenamiento o una matriz de confusión tienen la misma lógica en cualquier implementación.
 
@@ -967,7 +967,7 @@ La productividad inicial es solo un criterio. Debe considerarse quién mantendr�
 
 Conviene realizar una prueba vertical: leer una muestra, aplicar una transformación, generar un resultado y ejecutarlo en el entorno previsto. Esta prueba revela temprano problemas de controladores, memoria, serialización y permisos.
 
-La interoperabilidad se construye mediante formatos y contratos, no traduciendo manualmente notebooks. Parquet, CSV controlado, bases o APIs pueden ser fronteras; cada una debe especificar esquema, unidades y valores faltantes.
+La interoperabilidad se construye mediante formatos y especificaciones, no traduciendo manualmente notebooks. Parquet, CSV controlado, bases o APIs pueden ser fronteras; cada una debe especificar esquema, unidades y valores faltantes.
 
 #### Rendimiento y claridad
 
@@ -1040,9 +1040,9 @@ R también permite documentos reproducibles y gestión de entornos. La sección 
 
 El valor pedagógico de `tidyverse` no reside solo en funciones, sino en una gramática que hace visibles verbos de transformación. Seleccionar, filtrar, agrupar y resumir pueden leerse como pasos. Esa claridad facilita revisar si cambió la unidad.
 
-Sin embargo, una cadena larga puede ocultar resultados intermedios y cardinalidades. En un proceso crítico se agregan comprobaciones después de uniones y agregaciones. La elegancia sintáctica no reemplaza contratos ni pruebas.
+Sin embargo, una cadena larga puede ocultar resultados intermedios y cardinalidades. En un proceso crítico se agregan comprobaciones después de uniones y agregaciones. La elegancia sintáctica no reemplaza especificaciones ni pruebas.
 
-En equipos mixtos, una especificación agnóstica describe la operación antes de implementarla: “conservar todos los viajes y unir clima por estación y hora” es más estable que una función particular. Python y R deben producir tablas compatibles bajo el mismo contrato.
+En equipos mixtos, una especificación agnóstica describe la operación antes de implementarla: “conservar todos los viajes y unir clima por estación y hora” es más estable que una función particular. Python y R deben producir tablas compatibles bajo la misma especificación.
 
 ### 2.4.5. Organización de código, datos y resultados
 
@@ -1073,7 +1073,7 @@ Una regla útil es que cada resultado responda tres preguntas: ¿qué proceso lo
 
 #### Datos como entradas o productos
 
-Cada archivo debe clasificarse como fuente, intermedio, producto o artefacto temporal. Las fuentes son inmutables; los productos tienen propietario y contrato; los intermedios se regeneran; los temporales pueden eliminarse. Sin esta clasificación, el equipo no sabe qué respaldo necesita ni qué archivo es autoridad.
+Cada archivo debe clasificarse como fuente, intermedio, producto o artefacto temporal. Las fuentes son inmutables; los productos tienen propietario y especificación; los intermedios se regeneran; los temporales pueden eliminarse. Sin esta clasificación, el equipo no sabe qué respaldo necesita ni qué archivo es autoridad.
 
 Los directorios no sustituyen una interfaz. El código no debería depender de que una persona coloque manualmente “el archivo más nuevo”. La configuración identifica versión y ubicación; la validación confirma checksum y esquema.
 
@@ -1103,7 +1103,7 @@ Esta asociación permite reproducir, comparar y retirar modelos. Sin ella, un ar
 
 #### Versionado semántico de productos de datos
 
-Un producto puede cambiar filas sin cambiar contrato, agregar una columna compatible o modificar significado. Conviene diferenciar versiones de datos, esquema y lógica. Un cambio de definición necesita una versión mayor y una migración para consumidores.
+Un producto puede cambiar filas sin cambiar su especificación, agregar una columna compatible o modificar significado. Conviene diferenciar versiones de datos, esquema y lógica. Un cambio de definición necesita una versión mayor y una migración para consumidores.
 
 Las sumas de comprobación identifican contenido exacto, pero no explican semántica. Se combinan con catálogo y notas de cambio. Un consumidor debe poder saber si necesita recalcular, adaptar o rechazar una versión.
 

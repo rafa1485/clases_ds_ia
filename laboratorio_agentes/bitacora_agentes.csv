@@ -1,4 +1,0 @@
-hora,presion,racha_presion_alta,accion_simple,motivo_simple,accion_modelo,motivo_modelo
-6,0.95,1,RECOMENDAR_REFUERZO,Presión actual (0.95) >= 0.85.,NO_REFORZAR,Presión alta aislada (racha = 1 hora); se requiere persistencia de al menos 2 horas.
-7,1.75,2,RECOMENDAR_REFUERZO,Presión actual (1.75) >= 0.85.,RECOMENDAR_REFUERZO,Presión alta persistente (2 horas consecutivas >= 0.85).
-8,3.25,3,RECOMENDAR_REFUERZO,Presión actual (3.25) >= 0.85.,RECOMENDAR_REFUERZO,Presión alta persistente (3 horas consecutivas >= 0.85).
