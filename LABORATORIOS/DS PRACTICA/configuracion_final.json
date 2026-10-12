@@ -1,0 +1,20 @@
+{
+  "tarea": "clasificación multiclase de species",
+  "predictores": [
+    "bill_length_mm",
+    "bill_depth_mm",
+    "flipper_length_mm",
+    "body_mass_g"
+  ],
+  "imputacion": "SimpleImputer(strategy='mean')",
+  "escalado": "StandardScaler()",
+  "modelo": "LogisticRegression(max_iter=1000, random_state=42)",
+  "seleccion_de_atributos": "ninguna",
+  "semilla": 42,
+  "metricas": [
+    "accuracy",
+    "f1_macro",
+    "matriz de confusión"
+  ],
+  "criterio_de_eleccion": "mayor accuracy y F1 macro medios en validación cruzada de 5 folds sobre desarrollo"
+}

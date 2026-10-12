@@ -1,0 +1,52 @@
+{
+  "criterio": "aleatoria estratificada por species",
+  "test_size": 0.2,
+  "random_state": 42,
+  "n_total": 344,
+  "n_desarrollo": 275,
+  "n_prueba": 69,
+  "conteos_especie": {
+    "Completo": {
+      "Adelie": 152,
+      "Gentoo": 124,
+      "Chinstrap": 68
+    },
+    "Desarrollo": {
+      "Adelie": 122,
+      "Gentoo": 99,
+      "Chinstrap": 54
+    },
+    "Prueba": {
+      "Adelie": 30,
+      "Gentoo": 25,
+      "Chinstrap": 14
+    }
+  },
+  "proporciones_especie": {
+    "Completo": {
+      "Adelie": 0.442,
+      "Gentoo": 0.36,
+      "Chinstrap": 0.198
+    },
+    "Desarrollo": {
+      "Adelie": 0.444,
+      "Gentoo": 0.36,
+      "Chinstrap": 0.196
+    },
+    "Prueba": {
+      "Adelie": 0.435,
+      "Gentoo": 0.362,
+      "Chinstrap": 0.203
+    }
+  },
+  "validacion": {
+    "metodo": "StratifiedKFold",
+    "n_splits": 5,
+    "shuffle": true,
+    "random_state": 42
+  },
+  "archivos_indices": [
+    "indices_desarrollo.csv",
+    "indices_prueba.csv"
+  ]
+}
