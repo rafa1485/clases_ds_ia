@@ -1,0 +1,1053 @@
+% Guia de ejercicios: Diseno experimental de Machine Learning
+% Compilar desde este directorio con:
+%   pdflatex Guia_de_ejercicios_Diseno_experimental_de_Machine_Learning.tex
+%   pdflatex Guia_de_ejercicios_Diseno_experimental_de_Machine_Learning.tex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\renewcommand{\UrlFont}{\small\ttfamily}
+\Urlmuskip=0mu plus 2mu
+
+\definecolor{UAPNavy}{HTML}{17324D}
+\definecolor{UAPTeal}{HTML}{007F82}
+\definecolor{UAPGold}{HTML}{E2A33A}
+\definecolor{UAPLight}{HTML}{F3F6F8}
+\definecolor{UAPGray}{HTML}{536471}
+\definecolor{UAPRed}{HTML}{A94343}
+
+\arrayrulecolor{UAPGray!50}
+
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{UAPTeal}\bfseries,
+  commentstyle=\color{UAPGray}\itshape,
+  stringstyle=\color{UAPRed},
+  backgroundcolor=\color{UAPLight},
+  frame=single,
+  rulecolor=\color{UAPGray!60},
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  aboveskip=1em,
+  belowskip=1em
+}
+
+\newcommand{\cod}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\tercer}[1]{\vspace{0.9em}\noindent\textcolor{UAPTeal}{\textbf{#1}}\par\vspace{0.25em}}
+\newcommand{\thc}[1]{\textbf{\textcolor{white}{#1}}}
+
+\newcommand{\bloquesec}[1]{\section*{#1}\addcontentsline{toc}{section}{#1}}
+\newcommand{\ejersub}[1]{\subsection*{#1}\addcontentsline{toc}{subsection}{#1}}
+
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-2.8ex \@plus -1ex \@minus -.2ex}%
+  {1.6ex \@plus.2ex}%
+  {\normalfont\LARGE\bfseries\color{UAPNavy}}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-2.2ex \@plus -.6ex \@minus -.2ex}%
+  {1.1ex \@plus.2ex}%
+  {\normalfont\Large\bfseries\color{UAPNavy}}}
+\makeatother
+
+\begin{document}
+
+\thispagestyle{empty}
+\begin{center}
+  {\color{UAPTeal}\footnotesize\bfseries GUÍA DE EJERCICIOS}\\[0.4em]
+  {\color{UAPNavy}\LARGE\bfseries Diseño experimental de Machine Learning}\\[0.25em]
+  {\color{UAPGray}\large Formulación, evaluación y comparación confiable de modelos}\\[0.9em]
+  \textcolor{UAPGold}{\rule{0.45\linewidth}{1.4pt}}
+\end{center}
+
+\vspace{0.6em}
+\noindent\colorbox{UAPLight}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+  \textbf{Curso:} Data Science\\[0.25em]
+  \textbf{Alcance:} clasificación, regresión y clustering.\\
+  \textbf{Extensión opcional:} evaluación de transferencia mediante particiones por isla y por año.\\
+  \textbf{Conjunto de datos común:} Palmer Penguins.\\
+  \textbf{Entorno de trabajo:} Jupyter Notebook con Python.\\
+  \textbf{Modalidad sugerida:} resolución individual, discusión en pequeños grupos y entrega individual verificable.%
+}}
+
+\vspace{0.9em}
+\tableofcontents
+\newpage
+
+% =====================================================================
+\bloquesec{Propósitos de aprendizaje}
+
+Al completar la guía, el estudiante deberá ser capaz de:
+
+\begin{enumerate}
+  \item Distinguir paradigma, tarea, algoritmo, modelo, predicción y decisión.
+  \item Formular problemas de clasificación, regresión y clustering a partir de un mismo dominio.
+  \item Definir unidad de análisis, población objetivo, muestra, variables predictoras y resultado esperado.
+  \item Relacionar escenarios de uso con criterios de partición adecuados.
+  \item Separar correctamente entrenamiento, validación y prueba.
+  \item Reconocer fugas de información producidas por variables, entidades, duplicados o transformaciones.
+  \item Construir baselines pertinentes para cada tarea.
+  \item Seleccionar métricas compatibles con el objetivo y los costos de error.
+  \item Aplicar validación cruzada preservando la independencia de la evaluación.
+  \item Comparar modelos en condiciones justas y reconocer subajuste y sobreajuste.
+  \item Documentar un protocolo experimental reproducible y auditable.
+\end{enumerate}
+
+% =====================================================================
+\bloquesec{Datos y entorno de trabajo}
+
+\ejersub{Conjunto Palmer Penguins}
+
+El conjunto contiene observaciones de 344 pingüinos pertenecientes a tres especies y registrados en tres islas del archipiélago Palmer, en la Antártida.
+
+\textbf{Descarga directa en CSV:}\\
+\url{https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/inst/extdata/penguins.csv}
+
+\textbf{Documentación:}\\
+\url{https://allisonhorst.github.io/palmerpenguins/}
+
+\textbf{Licencia:} CC0.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{|l|p{28mm}|X|}
+\hline
+\rowcolor{UAPNavy}
+\thc{Variable} & \thc{Tipo} & \thc{Descripción}\\
+\hline
+\cod{species} & Categórica & Especie: Adelie, Chinstrap o Gentoo\\
+\hline
+\cod{island} & Categórica & Isla de observación\\
+\hline
+\cod{bill_length_mm} & Numérica & Longitud del pico en milímetros\\
+\hline
+\cod{bill_depth_mm} & Numérica & Profundidad del pico en milímetros\\
+\hline
+\cod{flipper_length_mm} & Numérica & Longitud de la aleta en milímetros\\
+\hline
+\cod{body_mass_g} & Numérica & Masa corporal en gramos\\
+\hline
+\cod{sex} & Categórica & Sexo registrado\\
+\hline
+\cod{year} & Categórica u ordinal & Año de observación\\
+\hline
+\end{tabularx}
+\end{center}
+
+\ejersub{Escenario de uso y criterio de partición establecidos}
+
+La tarea principal consiste en clasificar la especie de nuevos pingüinos pertenecientes a la misma población de referencia que representa el conjunto Palmer Penguins: individuos observados bajo el mismo procedimiento general, en las islas Biscoe, Dream y Torgersen y en los años incluidos en los datos. Cada fila representa un pingüino diferente y la predicción se realiza a partir de sus características registradas. El resultado estimará el desempeño esperado sobre nuevos individuos de ese mismo contexto.
+
+La fuente utilizada carece de un identificador explícito del animal y su documentación describe una observación por individuo. La versión indicada contiene cero filas idénticas; la auditoría verificará este resultado y tratará cada fila como una unidad distinta. Este escenario permite considerar las filas intercambiables y establece una partición aleatoria estratificada por \cod{species}: 80\,\% para desarrollo y 20\,\% para prueba.
+
+\ejersub{Protocolo temprano para reservar la prueba}
+
+Después de descargar y conservar una copia inalterada, se realizará una auditoría estructural mínima sobre el archivo completo: dimensiones, nombres, tipos, disponibilidad del objetivo, identificadores, orden temporal y posibles relaciones entre filas. Los análisis sustantivos ---asociaciones con el objetivo, rankings de variables, imputaciones, escalas y resultados de modelos--- comenzarán sobre el conjunto de desarrollo después de la separación.
+
+Antes de iniciar el análisis exploratorio se deberá:
+
+\begin{enumerate}
+  \item verificar que cada fila represente un pingüino diferente mediante la documentación y el conteo de filas idénticas;
+  \item registrar como unidad de análisis al pingüino individual y como caso nuevo a otro individuo de la misma población de referencia;
+  \item aplicar una partición aleatoria estratificada por \cod{species};
+  \item reservar la prueba, registrar semilla e índices y conservar el resto como conjunto de desarrollo;
+  \item continuar la exploración, selección y ajuste sobre el conjunto de desarrollo.
+\end{enumerate}
+
+El porcentaje establecido responde al tamaño del conjunto, la cantidad de casos por especie y el escenario de uso definido para esta guía. En otros problemas, esas características pueden conducir a una partición diferente.
+
+\begin{lstlisting}
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+RANDOM_STATE = 42
+DATA_URL = (
+    "https://raw.githubusercontent.com/allisonhorst/"
+    "palmerpenguins/master/inst/extdata/penguins.csv"
+)
+
+datos = pd.read_csv(DATA_URL)
+datos_originales = datos.copy(deep=True)
+
+idx_desarrollo, idx_prueba = train_test_split(
+    datos.index,
+    test_size=0.20,
+    stratify=datos["species"],
+    random_state=RANDOM_STATE
+)
+
+desarrollo = datos.loc[idx_desarrollo].copy()
+prueba = datos.loc[idx_prueba].copy()
+
+# Guardar los indices permite reconstruir exactamente la separacion.
+pd.Series(idx_desarrollo, name="indice").to_csv("indices_desarrollo.csv", index=False)
+pd.Series(idx_prueba, name="indice").to_csv("indices_prueba.csv", index=False)
+\end{lstlisting}
+
+La prueba se utilizará una sola vez, después de fijar variables, preprocesamiento, modelo, hiperparámetros y métricas. La semilla registrada se conservará durante todo el experimento. Un eventual hallazgo que cambie el escenario de uso se documentará como inicio de un nuevo ciclo experimental con una nueva muestra de evaluación.
+
+\ejersub{Entorno de trabajo obligatorio}
+
+Todos los ejercicios se resolverán en un único notebook de Jupyter con Python.
+
+Bibliotecas principales:
+
+\begin{itemize}
+  \item \cod{pandas} para carga, inspección y transformación de datos;
+  \item \cod{numpy} para operaciones numéricas;
+  \item \cod{matplotlib} y \cod{seaborn} para visualización;
+  \item \cod{scikit-learn} para particiones, pipelines, modelos, validación y métricas.
+\end{itemize}
+
+Cuando sea necesario preparar las dependencias del entorno, puede utilizarse una celda inicial como:
+
+\begin{lstlisting}
+%pip install pandas numpy matplotlib seaborn scikit-learn
+\end{lstlisting}
+
+Una vez preparado el entorno, la celda de instalación se conservará comentada o se marcará como configuración inicial.
+
+\ejersub{Estructura del notebook único}
+
+El archivo \cod{.ipynb} reunirá todos los ejercicios y deberá organizarse mediante celdas Markdown y celdas de código en este orden:
+
+\begin{enumerate}
+  \item \textbf{Portada y metadatos:} título del práctico, estudiante, fecha y versión.
+  \item \textbf{Índice del notebook:} bloques y ejercicios incluidos, con enlaces internos a sus encabezados Markdown.
+  \item \textbf{Entorno:} importaciones, versiones de bibliotecas y semilla.
+  \item \textbf{Carga y auditoría inicial:} fuente, fecha de descarga, copia original y revisión estructural.
+  \item \textbf{Protocolo experimental común:} unidad de análisis, escenario de uso, variables, partición y funciones de desarrollo, validación y prueba.
+  \item \textbf{Resolución de los ejercicios:} bloques y ejercicios en el orden de la guía. Cada ejercicio tendrá un encabezado Markdown e integrará su objetivo o pregunta, desarrollo, resultados, interpretación, evidencia solicitada y conclusión.
+  \item \textbf{Evaluación final:} configuración congelada, ejecución del ejercicio 13 y resultados sobre la prueba reservada.
+  \item \textbf{Extensión opcional:} evaluación de transferencia por isla y por período, cuando se realice.
+  \item \textbf{Cierre y reproducibilidad:} limitaciones, decisiones tomadas, parámetros y condiciones necesarias para ejecutar nuevamente el notebook.
+\end{enumerate}
+
+Convención sugerida para los bloques iniciales:
+
+\begin{lstlisting}
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+RANDOM_STATE = 42
+DATA_URL = (
+    "https://raw.githubusercontent.com/allisonhorst/"
+    "palmerpenguins/master/inst/extdata/penguins.csv"
+)
+\end{lstlisting}
+
+\ejersub{Reglas experimentales comunes}
+
+Estas reglas se aplican a todos los ejercicios:
+
+\begin{enumerate}
+  \item Fijar y registrar una semilla aleatoria.
+  \item Conservar una copia inalterada de los datos originales.
+  \item Definir la partición sobre la copia inalterada y tratar observaciones y faltantes dentro de la partición correspondiente.
+  \item Realizar antes de la separación la revisión de estructura, identificadores, dependencias entre filas y disponibilidad del objetivo.
+  \item Reservar el conjunto de prueba para la evaluación final de variables, modelo e hiperparámetros ya fijados.
+  \item Ajustar imputación, codificación y escalado con los datos de entrenamiento de cada iteración.
+  \item Realizar análisis descriptivos, asociaciones con el objetivo y decisiones de modelado sobre el conjunto de desarrollo.
+  \item Conservar la misma semilla, los mismos índices y el mismo criterio de partición durante el experimento.
+  \item Informar las decisiones junto con los resultados numéricos.
+  \item Diferenciar claramente resultados de entrenamiento, validación y prueba.
+  \item Utilizar \cod{Pipeline} y \cod{ColumnTransformer} de \cod{scikit-learn} cuando existan transformaciones aprendidas de los datos.
+  \item Declarar las variables de configuración en celdas visibles y ejecutar las celdas en orden.
+  \item Antes de entregar, reiniciar el kernel y ejecutar todas las celdas desde el comienzo.
+  \item El notebook debe finalizar sin errores y conservar las salidas necesarias para revisar los resultados.
+\end{enumerate}
+
+\ejersub{Producto de entrega}
+
+Cada estudiante deberá entregar:
+
+\begin{itemize}
+  \item Un único archivo \cod{.ipynb} ejecutable y comentado que contenga todos los ejercicios.
+  \item El informe breve integrado en las celdas Markdown del notebook.
+  \item Una ficha final de protocolo experimental.
+  \item Las tablas y figuras solicitadas con títulos, unidades y explicación.
+  \item Una declaración de qué decisiones se tomaron antes y después de observar resultados.
+  \item El archivo debe abrirse con Jupyter Notebook o JupyterLab y ejecutarse de principio a fin con \textbf{Restart Kernel and Run All}.
+\end{itemize}
+
+% =====================================================================
+\bloquesec{Bloque A. Formulación del problema}
+
+\ejersub{Ejercicio 1. Paradigma, tarea, algoritmo, predicción y decisión}
+
+\tercer{Objetivo}
+
+Distinguir los niveles que intervienen en un sistema de Machine Learning.
+
+\tercer{Consignas}
+
+Para cada situación, completar la tabla solicitada:
+
+\begin{enumerate}
+  \item Estimar la especie de un pingüino a partir de sus medidas corporales.
+  \item Estimar la masa corporal de un pingüino.
+  \item Formar grupos de pingüinos con perfiles morfológicos semejantes.
+  \item Usar una pequeña cantidad de especies verificadas y muchas observaciones sin especie confirmada.
+\end{enumerate}
+
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.6}
+\noindent
+\begin{tabularx}{\textwidth}{|l|X|X|X|X|X|}
+\hline
+\rowcolor{UAPNavy}
+\thc{Situación} & \thc{Paradigma} & \thc{Tarea} & \thc{Salida esperada} & \thc{Algoritmos posibles} & \thc{Decisión apoyada}\\
+\hline
+1 & & & & & \\
+\hline
+2 & & & & & \\
+\hline
+3 & & & & & \\
+\hline
+4 & & & & & \\
+\hline
+\end{tabularx}
+\endgroup
+
+Luego responder:
+
+\begin{enumerate}
+  \item ¿Qué elementos adicionales al algoritmo definen el problema experimental?
+  \item ¿En qué se diferencian una predicción y una decisión?
+  \item ¿Puede un mismo algoritmo resolver más de una tarea? Proponer un ejemplo.
+  \item ¿Puede una misma tarea resolverse con distintos algoritmos? Proponer dos alternativas.
+  \item ¿Por qué la codificación de las especies como 0, 1 y 2 conserva la naturaleza clasificatoria de la tarea?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Tabla completa.
+  \item Respuestas justificadas en un máximo de 300 palabras.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\ejersub{Ejercicio 2. Tres formulaciones sobre el mismo conjunto de datos}
+
+\tercer{Objetivo}
+
+Distinguir diferentes tareas que pueden formularse sobre un mismo dominio.
+
+\tercer{Consignas}
+
+Formular los siguientes problemas usando Palmer Penguins:
+
+\begin{enumerate}
+  \item \textbf{Clasificación:} predecir \cod{species}.
+  \item \textbf{Regresión:} predecir \cod{body_mass_g}.
+  \item \textbf{Clustering:} descubrir perfiles a partir de las variables morfológicas y reservar \cod{species} para la interpretación posterior de los grupos.
+\end{enumerate}
+
+Completar una única tabla comparativa. Cada columna deberá contener la definición propuesta para el tipo de problema correspondiente:
+
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.6}
+\noindent
+\begin{tabularx}{\textwidth}{|p{30mm}|X|X|X|}
+\hline
+\rowcolor{UAPNavy}
+\thc{Elemento} & \thc{Definición propuesta: clasificación} & \thc{Definición propuesta: regresión} & \thc{Definición propuesta: clustering}\\
+\hline
+Uso o decisión que se desea apoyar & & & \\
+\hline
+Unidad de análisis & & & \\
+\hline
+Variables de entrada candidatas & & & \\
+\hline
+Variable objetivo, si corresponde & & & \\
+\hline
+Salida producida por el modelo & & & \\
+\hline
+Error o fracaso relevante & & & \\
+\hline
+\end{tabularx}
+\endgroup
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿Qué cambia entre las tres formulaciones aunque las filas sean las mismas?
+  \item ¿Qué variable debe ocultarse durante el clustering? ¿Para qué podría utilizarse después?
+  \item En regresión, ¿qué función debe asignarse a \cod{body_mass_g} y qué riesgo produciría incluirla entre los predictores?
+  \item ¿Qué limitaciones de alcance tendrían las conclusiones obtenidas con estos datos?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Una tabla comparativa completa con las tres definiciones propuestas.
+  \item Un párrafo que compare sus diferencias experimentales.
+\end{itemize}
+
+% =====================================================================
+\bloquesec{Bloque B. Auditoría y partición de los datos}
+
+\ejersub{Ejercicio 3. Auditoría estructural y reserva temprana de la prueba}
+
+\tercer{Objetivo}
+
+Definir una separación reproducible antes de explorar relaciones con el objetivo o tomar decisiones de modelado.
+
+\tercer{Consignas}
+
+\begin{enumerate}
+  \item Descargar el CSV, conservar una copia inalterada y verificar dimensiones, nombres, tipos y disponibilidad de \cod{species}.
+  \item Registrar la unidad de análisis y el caso nuevo establecidos en el escenario de uso de esta guía; comprobar la cantidad de filas idénticas y documentar el resultado.
+  \item Reservar 20\,\% como prueba mediante la partición aleatoria estratificada por \cod{species} y con semilla registrada; conservar 80\,\% como desarrollo.
+  \item Guardar los índices de ambas particiones, comprobar que su intersección esté vacía y que su unión reconstruya el conjunto original.
+  \item Mantener cerrada la prueba hasta la evaluación final y realizar los análisis siguientes sobre desarrollo.
+  \item Completar el siguiente diccionario usando documentación y estadísticas del conjunto de desarrollo. Los nombres de las variables ya están precargados.
+\end{enumerate}
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}{|p{26mm}|p{18mm}|p{15mm}|p{12mm}|p{16mm}|p{14mm}|p{14mm}|p{12mm}|p{20mm}|}
+\hline
+\rowcolor{UAPNavy}
+\thc{Variable} & \thc{Descripción} & \thc{Tipo conceptual} & \thc{Tipo en \cod{pandas}} & \thc{Unidad o categorías} & \thc{Cantidad de faltantes} & \thc{Valores o rango observados} & \thc{Rol posible} & \thc{Tratamiento, controles y riesgos}\\
+\hline
+\endhead
+\hline
+\endlastfoot
+\cod{species} & & & & & & & & \\
+\hline
+\cod{island} & & & & & & & & \\
+\hline
+\cod{bill_length_mm} & & & & & & & & \\
+\hline
+\cod{bill_depth_mm} & & & & & & & & \\
+\hline
+\cod{flipper_length_mm} & & & & & & & & \\
+\hline
+\cod{body_mass_g} & & & & & & & & \\
+\hline
+\cod{sex} & & & & & & & & \\
+\hline
+\cod{year} & & & & & & & & \\
+\hline
+\end{longtable}
+\endgroup
+
+Para completar la tabla se deberá indicar, calculando cantidades y rangos sobre desarrollo:
+
+\begin{itemize}
+  \item \textbf{Descripción:} significado de la variable.
+  \item \textbf{Tipo conceptual:} numérica continua, numérica discreta, categórica nominal o categórica ordinal.
+  \item \textbf{Tipo en \cod{pandas}:} tipo detectado al cargar el CSV, por ejemplo \cod{object}, \cod{float64} o \cod{int64}.
+  \item \textbf{Unidad o categorías:} unidad de medición o conjunto de categorías observadas.
+  \item \textbf{Cantidad de faltantes:} número de valores ausentes calculado desde el \cod{DataFrame}.
+  \item \textbf{Valores o rango observados:} categorías presentes o valores mínimo y máximo.
+  \item \textbf{Rol posible:} predictor, variable objetivo, variable contextual o variable reservada para análisis posterior, según la tarea.
+  \item \textbf{Tratamiento, controles y riesgos:} imputación, codificación, escalado, controles de calidad y posibles fugas o atajos.
+\end{itemize}
+
+\begin{enumerate}
+  \setcounter{enumi}{6}
+  \item Contar faltantes por variable en desarrollo.
+  \item Buscar filas exactamente duplicadas y posibles duplicados lógicos dentro de desarrollo.
+  \item Describir en desarrollo la distribución de \cod{species}, \cod{island} y \cod{sex}.
+  \item Obtener resúmenes de las cuatro medidas corporales usando solo desarrollo.
+  \item Identificar unidades y valores físicamente improbables en desarrollo, conservarlos durante la auditoría y proponer un tratamiento justificado.
+\end{enumerate}
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿Qué tratamiento requieren los faltantes antes de entrenar?
+  \item ¿En qué datos debe calcularse la media dentro de cada fold de validación y qué fuga produciría calcularla sobre desarrollo completo?
+  \item ¿\cod{island} podría actuar como atajo para predecir \cod{species}? Investigar la relación mediante una tabla cruzada.
+  \item ¿El año debería tratarse como número continuo o categoría? Justificar según el uso propuesto.
+  \item ¿Qué información fue admisible para elegir la partición y qué análisis debió esperar hasta reservar la prueba?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Diccionario de datos completo según la tabla proporcionada.
+  \item Criterio de partición, semilla e índices guardados.
+  \item Comprobación de ausencia de superposición entre desarrollo y prueba.
+  \item Tabla de calidad.
+  \item Tabla cruzada \cod{island} por \cod{species}.
+  \item Lista razonada de variables candidatas y variables que requieren cautela.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\ejersub{Ejercicio 4. Papeles de desarrollo, validación y prueba}
+
+\tercer{Objetivo}
+
+Asignar a cada partición un único papel experimental.
+
+\tercer{Consignas}
+
+Para la clasificación de \cod{species}, utilizar exactamente la separación fijada en el ejercicio anterior:
+
+\begin{enumerate}
+  \item Confirmar que desarrollo contiene 80\,\% y prueba 20\,\% mediante los índices ya guardados.
+  \item Dentro del conjunto de desarrollo, establecer cómo se realizará la validación y qué decisiones podrán tomarse con ella.
+  \item Verificar una sola vez que la estratificación mantuvo proporciones razonables de especies en:
+    \begin{itemize}
+      \item datos completos;
+      \item desarrollo;
+      \item prueba.
+    \end{itemize}
+  \item Registrar cantidades, proporciones, semilla e índices en un manifiesto de partición reproducible.
+  \item Crear una tabla que asigne una función y un momento de uso a cada partición:
+\end{enumerate}
+
+\begingroup
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.6}
+\noindent
+\begin{tabularx}{\textwidth}{|p{28mm}|X|X|}
+\hline
+\rowcolor{UAPNavy}
+\thc{Partición} & \thc{Función asignada} & \thc{Momento de uso}\\
+\hline
+Entrenamiento & & \\
+\hline
+Validación & & \\
+\hline
+Prueba & & \\
+\hline
+\end{tabularx}
+\endgroup
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿Por qué la estratificación es apropiada para este objetivo?
+  \item ¿Qué ocurriría si una clase poco frecuente quedara casi ausente de validación?
+  \item ¿Por qué consultar la prueba después de cada modificación invalida su papel?
+  \item ¿Los porcentajes elegidos constituyen una regla universal? ¿Qué otros factores deberían considerarse?
+  \item Si se descubre una dependencia entre filas que vuelve incorrecta la separación, ¿por qué debe redefinirse el experimento antes de seguir comparando modelos?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Código reproducible de la partición.
+  \item Manifiesto con criterio, semilla, índices, cantidades y proporciones.
+  \item Tabla con cantidades y proporciones.
+  \item Tabla de funciones y momentos de uso de las particiones.
+\end{itemize}
+
+% =====================================================================
+\bloquesec{Bloque C. Fuga de información y pipelines}
+
+\ejersub{Ejercicio 5. Detectives de fuga de información}
+
+\tercer{Objetivo}
+
+Identificar procedimientos que producen evaluaciones demasiado optimistas.
+
+\tercer{Consignas}
+
+Clasificar cada situación como correcta o contaminada y explicar el motivo:
+
+\begin{enumerate}
+  \item Imputar faltantes con la media de todas las filas y luego separar entrenamiento y prueba.
+  \item Separar primero y ajustar el imputador con entrenamiento.
+  \item Estandarizar las cuatro variables corporales usando todos los datos antes de validación cruzada.
+  \item Elegir las dos variables con mayor correlación con el objetivo usando entrenamiento y prueba juntos.
+  \item Probar veinte configuraciones y seleccionar la que logra mayor accuracy en prueba.
+  \item Mantener fotografías del mismo pingüino en una única partición.
+  \item Incluir una variable creada después de confirmar la especie.
+  \item Eliminar duplicados después de repartir sus copias entre entrenamiento y prueba.
+  \item Ajustar el escalador dentro de cada fold de validación cruzada.
+  \item Usar \cod{island} sin analizar que puede actuar como atajo para \cod{species}.
+\end{enumerate}
+
+Para los casos contaminados:
+
+\begin{itemize}
+  \item identificar qué información cruza la frontera;
+  \item explicar en qué momento se genera esa información y compararlo con el momento de la predicción real;
+  \item proponer una corrección.
+\end{itemize}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Tabla con diagnóstico, explicación y corrección de los diez casos.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\ejersub{Ejercicio 6. Imputación y escalado: procedimiento incorrecto y procedimiento válido}
+
+\tercer{Objetivo}
+
+Demostrar que las transformaciones también aprenden de los datos.
+
+\tercer{Consignas}
+
+Utilizar como predictores:
+
+\begin{itemize}
+  \item \cod{bill_length_mm};
+  \item \cod{bill_depth_mm};
+  \item \cod{flipper_length_mm};
+  \item \cod{body_mass_g}.
+\end{itemize}
+
+Utilizar \cod{species} como variable objetivo. Para clasificar las tres especies se puede emplear una regresión logística multiclase. El ejercicio se centra en observar dónde se ajustan la imputación y el escalado.
+
+Importar como mínimo los siguientes módulos:
+
+\begin{lstlisting}
+import pandas as pd
+
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import StratifiedKFold, cross_validate
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+\end{lstlisting}
+
+Usar los mismos folds y la misma configuración de \cod{LogisticRegression} en ambos diseños para que la comparación sea justa.
+
+Realizar dos diseños:
+
+\textbf{Diseño A, contaminado para fines de diagnóstico}
+
+\begin{enumerate}
+  \item Imputar y escalar usando todos los datos.
+  \item Aplicar después validación cruzada.
+\end{enumerate}
+
+\textbf{Diseño B, válido}
+
+\begin{enumerate}
+  \item Construir un pipeline con imputación y escalado.
+  \item Ajustar esas transformaciones dentro de cada fold.
+  \item Aplicar exactamente los parámetros aprendidos al fold reservado.
+\end{enumerate}
+
+Comparar ambos resultados, aunque la diferencia sea pequeña.
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿Por qué el Diseño A está conceptualmente invalidado aunque produzca una métrica similar?
+  \item ¿Qué parámetros aprende el imputador?
+  \item ¿Qué parámetros aprende el escalador?
+  \item ¿Qué objeto se evalúa realmente: el algoritmo final o el procedimiento completo?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Diagrama o lista de pasos de ambos diseños.
+  \item Código de un pipeline reproducible.
+  \item Comparación y explicación conceptual.
+\end{itemize}
+
+% =====================================================================
+\bloquesec{Bloque D. Baselines y métricas}
+
+\ejersub{Ejercicio 7. Baselines pertinentes}
+
+\tercer{Objetivo}
+
+Establecer referencias mínimas antes de comparar modelos complejos.
+
+\tercer{Consignas}
+
+Construir los siguientes baselines usando solo información de entrenamiento:
+
+\begin{enumerate}
+  \item \textbf{Clasificación:} predecir siempre la especie mayoritaria.
+  \item \textbf{Clasificación probabilística:} utilizar las frecuencias de especies observadas en entrenamiento.
+  \item \textbf{Regresión:} predecir siempre la media de \cod{body_mass_g}.
+  \item \textbf{Regresión robusta:} predecir siempre la mediana de \cod{body_mass_g}.
+  \item \textbf{Clustering:} considerar una partición trivial de un único grupo como referencia conceptual y evaluar si soluciones con más grupos aportan estructura estable e interpretable.
+\end{enumerate}
+
+Evaluar cada baseline sobre los mismos casos que se utilizarán para evaluar los modelos correspondientes.
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿Por qué el baseline debe usar la misma información disponible que el modelo?
+  \item ¿Qué condiciones debe cumplir una referencia para que la comparación aporte evidencia de utilidad?
+  \item ¿Qué regla humana sencilla podría utilizarse como baseline operativo para estimar la masa de un pingüino?
+  \item ¿Qué cantidad mínima de grupos requiere silhouette y qué elementos compara esa métrica?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Tabla de baselines, reglas y métricas.
+  \item Justificación de cuál será la referencia principal para cada tarea.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\ejersub{Ejercicio 8. Matriz de confusión y métricas de clasificación}
+
+\tercer{Objetivo}
+
+Interpretar accuracy, precisión, recall y F1 según el error relevante.
+
+\tercer{Parte A. Cálculo manual}
+
+En un problema binario se obtuvieron:
+
+\begin{itemize}
+  \item VP = 16
+  \item FP = 8
+  \item FN = 4
+  \item VN = 72
+\end{itemize}
+
+Calcular, mostrando las operaciones:
+
+\begin{enumerate}
+  \item Accuracy.
+  \item Precisión.
+  \item Recall.
+  \item F1.
+  \item Proporción real de positivos.
+\end{enumerate}
+
+Luego interpretar cada resultado en una oración.
+
+\tercer{Parte B. Accuracy engañosa}
+
+En 100 casos existen 20 positivos y 80 negativos. Un sistema siempre predice la clase negativa.
+
+\begin{enumerate}
+  \item Construir la matriz de confusión.
+  \item Calcular accuracy y recall.
+  \item Explicar por qué una accuracy del 80\,\% puede ser inútil.
+  \item Proponer una situación donde los falsos negativos sean más costosos.
+  \item Proponer otra donde los falsos positivos sean más costosos.
+\end{enumerate}
+
+\tercer{Parte C. Clasificación multiclase con Palmer Penguins}
+
+\begin{enumerate}
+  \item Ajustar un modelo sencillo de clasificación.
+  \item Obtener la matriz de confusión de validación.
+  \item Calcular accuracy, precisión, recall y F1 por especie.
+  \item Calcular un promedio macro para asignar el mismo peso a cada clase en la interpretación.
+  \item Identificar qué par de especies se confunde con mayor frecuencia.
+  \item Comparar contra el baseline de clase mayoritaria.
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Cálculos manuales.
+  \item Matriz de confusión correctamente rotulada.
+  \item Tabla de métricas por clase.
+  \item Interpretación vinculada con tipos de error.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\ejersub{Ejercicio 9. Métricas de regresión}
+
+\tercer{Objetivo}
+
+Comparar MAE, RMSE y R cuadrado fuera de muestra.
+
+\tercer{Parte A. Cálculo manual}
+
+Valores reales: \cod{[10, 12, 18, 20]}
+
+Predicciones: \cod{[11, 10, 17, 26]}
+
+\begin{enumerate}
+  \item Calcular los errores con signo.
+  \item Calcular los errores absolutos.
+  \item Calcular los errores cuadrados.
+  \item Obtener MAE y RMSE.
+  \item Explicar por qué RMSE aumenta más ante el error de 6 unidades.
+\end{enumerate}
+
+\tercer{Parte B. Predicción de masa corporal}
+
+Predecir \cod{body_mass_g} a partir de:
+
+\begin{itemize}
+  \item \cod{bill_length_mm};
+  \item \cod{bill_depth_mm};
+  \item \cod{flipper_length_mm}.
+\end{itemize}
+
+Realizar lo siguiente:
+
+\begin{enumerate}
+  \item Evaluar los baselines de media y mediana.
+  \item Ajustar una regresión lineal mediante un pipeline.
+  \item Medir MAE, RMSE y R cuadrado en validación.
+  \item Comparar las métricas con las de los baselines.
+  \item Expresar MAE y RMSE en gramos.
+  \item Interpretar qué significa un R cuadrado negativo si apareciera fuera de muestra.
+  \item Decidir qué métrica sería principal si los errores grandes fueran especialmente costosos.
+\end{enumerate}
+
+\tercer{Extensión}
+
+Incorporar \cod{species} como predictor mediante codificación ajustada dentro del pipeline y comparar. Explicar qué pregunta distinta responde el nuevo modelo.
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Cálculos manuales.
+  \item Tabla comparativa de modelos y baselines.
+  \item Interpretación en unidades del problema.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\ejersub{Ejercicio 10. Evaluación de clustering}
+
+\tercer{Objetivo}
+
+Evaluar grupos sin confundir calidad geométrica con utilidad sustantiva.
+
+\tercer{Consignas}
+
+Usar las cuatro variables morfológicas:
+
+\begin{itemize}
+  \item \cod{bill_length_mm};
+  \item \cod{bill_depth_mm};
+  \item \cod{flipper_length_mm};
+  \item \cod{body_mass_g}.
+\end{itemize}
+
+Construir los clusters con esas cuatro variables y reservar \cod{species}, \cod{island} y \cod{sex} para la interpretación posterior.
+
+\begin{enumerate}
+  \item Imputar faltantes y estandarizar las variables.
+  \item Aplicar K-means para valores de K entre 2 y 6.
+  \item Repetir cada configuración con varias inicializaciones o semillas.
+  \item Calcular silhouette para cada K.
+  \item Examinar la variabilidad de silhouette entre repeticiones.
+  \item Seleccionar una solución considerando:
+    \begin{itemize}
+      \item cohesión;
+      \item separación;
+      \item estabilidad;
+      \item simplicidad;
+      \item interpretabilidad.
+    \end{itemize}
+  \item Describir cada cluster mediante valores centrales de las variables en sus unidades originales.
+  \item Después de finalizar el agrupamiento, comparar los clusters con \cod{species} mediante una tabla cruzada e interpretar esta comparación como evaluación externa del agrupamiento.
+  \item Analizar casos con silhouette baja o negativa.
+  \item Explicar si los grupos podrían apoyar alguna decisión concreta.
+\end{enumerate}
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿Por qué es imprescindible escalar antes de usar distancias con estas variables?
+  \item ¿Un silhouette alto demuestra que los grupos tienen significado biológico?
+  \item ¿Por qué distintas semillas pueden producir soluciones diferentes?
+  \item ¿Qué significa que un cluster contenga varias especies?
+  \item ¿Qué información adicional aporta la estabilidad frente al resultado de una única ejecución?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Curva o tabla de silhouette para K = 2, \ldots, 6.
+  \item Resumen de estabilidad entre repeticiones.
+  \item Perfiles de clusters en unidades originales.
+  \item Tabla cruzada final con \cod{species}.
+  \item Interpretación que separe evidencia geométrica de significado de dominio.
+\end{itemize}
+
+% =====================================================================
+\bloquesec{Bloque E. Validación cruzada y comparación de modelos}
+
+\ejersub{Ejercicio 11. Validación cruzada del procedimiento completo}
+
+\tercer{Objetivo}
+
+Estimar desempeño y variabilidad mediante validación cruzada sobre el conjunto de desarrollo.
+
+\tercer{Consignas}
+
+Sobre el conjunto de desarrollo de la tarea de clasificación:
+
+\begin{enumerate}
+  \item Definir una validación cruzada estratificada de K folds.
+  \item Construir un pipeline con:
+    \begin{itemize}
+      \item imputación;
+      \item escalado, cuando el algoritmo lo requiera;
+      \item modelo.
+    \end{itemize}
+  \item Evaluar al menos:
+    \begin{itemize}
+      \item regresión logística multinomial;
+      \item árbol de decisión.
+    \end{itemize}
+  \item Usar exactamente los mismos folds para ambos modelos.
+  \item Registrar accuracy y F1 macro en cada fold.
+  \item Informar promedio, desvío estándar, mínimo y máximo.
+  \item Mantener el conjunto de prueba cerrado durante todo el ejercicio.
+\end{enumerate}
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿Por qué informar solamente el promedio oculta información?
+  \item ¿Qué indicaría una dispersión grande entre folds?
+  \item ¿Por qué los modelos deben utilizar los mismos folds?
+  \item ¿Dónde deben aprenderse imputación, escalado y cualquier selección de atributos?
+  \item ¿Qué parte del proceso permanece completamente fuera del ciclo?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Descripción de folds, semilla y métricas.
+  \item Tabla con resultados por fold.
+  \item Tabla resumida de comparación.
+  \item Selección provisional de un modelo obtenida mediante validación sobre desarrollo.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\ejersub{Ejercicio 12. Subajuste, equilibrio y sobreajuste}
+
+\tercer{Objetivo}
+
+Relacionar capacidad del modelo con desempeño de entrenamiento y validación.
+
+\tercer{Consignas}
+
+Entrenar árboles de clasificación con diferentes valores de profundidad máxima, por ejemplo:
+
+\texttt{1, 2, 3, 5, 8, sin límite}
+
+Para cada configuración:
+
+\begin{enumerate}
+  \item Medir desempeño de entrenamiento.
+  \item Medir desempeño mediante los mismos folds de validación.
+  \item Registrar promedio y dispersión.
+  \item Construir una figura con complejidad en el eje horizontal y desempeño en el vertical.
+  \item Clasificar cada región como posible subajuste, equilibrio o sobreajuste.
+  \item Seleccionar una configuración considerando desempeño, estabilidad y simplicidad.
+\end{enumerate}
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿Qué patrón se espera bajo subajuste?
+  \item ¿Qué brecha entre entrenamiento y validación sugiere sobreajuste?
+  \item ¿Qué riesgo presenta elegir la configuración mediante el mejor resultado de entrenamiento?
+  \item ¿Qué papel cumple la simplicidad cuando dos configuraciones rinden de forma semejante?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Tabla por configuración.
+  \item Curva de desempeño.
+  \item Selección justificada a partir de los resultados de validación.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\ejersub{Ejercicio 13. Evaluación final sobre la prueba reservada}
+
+\tercer{Objetivo}
+
+Obtener una estimación final sobre datos independientes de las decisiones del procedimiento.
+
+\tercer{Consignas}
+
+Antes de acceder a la prueba, dejar por escrito y congelar:
+
+\begin{itemize}
+  \item variables seleccionadas y función asignada a cada variable disponible;
+  \item imputación, codificación, escalado y cualquier selección de atributos;
+  \item familia de modelo e hiperparámetros;
+  \item semilla, métricas y definición de clase positiva cuando corresponda;
+  \item criterio utilizado para elegir la configuración final.
+\end{itemize}
+
+Luego:
+
+\begin{enumerate}
+  \item Reajustar el pipeline completo con todo el conjunto de desarrollo.
+  \item Aplicar a la prueba reservada las transformaciones aprendidas en desarrollo.
+  \item Calcular una sola vez las métricas finales y la matriz de confusión.
+  \item Comparar el resultado con la estimación de validación y analizar las diferencias conservando la configuración congelada.
+  \item Registrar cualquier problema como limitación del experimento finalizado o como inicio de un nuevo ciclo experimental con una nueva muestra de evaluación.
+\end{enumerate}
+
+\tercer{Preguntas de análisis}
+
+\begin{enumerate}
+  \item ¿La diferencia entre validación y prueba es compatible con la variabilidad observada entre folds?
+  \item ¿Qué conclusiones están respaldadas por esta prueba y cuáles exceden la población evaluada?
+  \item ¿Qué nuevo conjunto independiente sería necesario si el resultado de prueba motiva cambios en el procedimiento?
+\end{enumerate}
+
+\tercer{Evidencia requerida}
+
+\begin{itemize}
+  \item Configuración final congelada antes de abrir la prueba.
+  \item Métricas y matriz de confusión de prueba.
+  \item Comparación entre validación y prueba.
+  \item Declaración explícita del momento en que se consultó la prueba y de las decisiones que quedaron congeladas previamente.
+\end{itemize}
+
+% =====================================================================
+\ejersub{Extensión opcional: transferencia entre contextos}
+
+En esta guía, \textbf{transferencia} significa aplicar un modelo en un contexto que estuvo ausente durante su ajuste. La separación por contexto cambia la pregunta experimental: en lugar de estimar el desempeño sobre nuevos individuos de la misma población combinada, se estudia cuánto se conservan las relaciones aprendidas al cambiar de isla o avanzar en el tiempo.
+
+\textbf{Ejemplo temporal.} Ajustar con observaciones de 2007 y 2008 y evaluar con las de 2009 representa el uso de un modelo en un período posterior. La pregunta concreta es: \emph{¿las relaciones entre las medidas corporales y la especie aprendidas en 2007--2008 conservan su utilidad para clasificar pingüinos observados en 2009?}
+
+\textbf{Ejemplo por isla.} Ajustar con Biscoe y Dream y evaluar con Torgersen representa el uso del modelo en una isla ausente durante el ajuste. La pregunta concreta es: \emph{¿las relaciones morfológicas aprendidas en Biscoe y Dream permiten reconocer los pingüinos de Torgersen?} En Palmer Penguins, isla y especie están fuertemente relacionadas: Torgersen contiene Adelie, Dream contiene Adelie y Chinstrap, y Biscoe contiene Adelie y Gentoo. Por ello, reservar una isla también puede cambiar las especies disponibles en cada partición. Esa cobertura forma parte del fenómeno que debe analizarse.
+
+La extensión se realizará después de completar la evaluación principal y se informará como un experimento separado:
+
+\begin{enumerate}
+  \item Construir una tabla cruzada de \cod{island} por \cod{species} y otra de \cod{year} por \cod{species}.
+  \item Para la transferencia temporal, usar 2007--2008 como desarrollo y 2009 como evaluación.
+  \item Para la transferencia por isla, repetir tres veces el análisis, reservando en cada repetición una isla completa para evaluación y usando las otras dos para desarrollo.
+  \item Registrar qué especies aparecen en desarrollo y evaluación en cada repetición.
+  \item Informar métricas por especie, cobertura de clases y matriz de confusión.
+  \item Interpretar por separado el cambio de contexto y la disponibilidad de cada especie durante el ajuste.
+  \item Comparar cada resultado con la partición aleatoria estratificada del experimento principal.
+\end{enumerate}
+
+Por ejemplo, al reservar Dream, Chinstrap aparece en evaluación y está ausente de las otras islas usadas para desarrollo. Ese resultado muestra una falta de cobertura de la clase durante el aprendizaje. Al reservar Torgersen, Adelie está representada también en desarrollo, pero la evaluación contiene una sola especie; las métricas por especie describen entonces la transferencia de Adelie hacia esa isla. Estos ejemplos permiten distinguir entre \emph{cambio de contexto} y \emph{cobertura de clases}.
+
+\end{document}

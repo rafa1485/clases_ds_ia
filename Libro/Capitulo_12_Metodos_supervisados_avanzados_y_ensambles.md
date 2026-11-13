@@ -195,7 +195,7 @@ Una lectura disciplinada sigue cuatro preguntas: ¿qué población llega a la ho
 
 Una empresa manufacturera debe priorizar incidentes de maquinaria para inspección en las próximas dos horas. La unidad de análisis es un incidente registrado; la etiqueta vale 1 si, después de una revisión independiente, se confirmó riesgo de parada crítica. Se dispone de vibración, temperatura, variación de corriente, edad del componente, tipo de máquina y carga. El costo de omitir un incidente crítico supera al de inspeccionar uno no crítico.
 
-**Paso 1: contrato y partición.** Se fija como tiempo de predicción el instante de alerta. Se excluyen variables creadas después de la inspección, como código final de avería. Se separan periodos: meses anteriores para desarrollo y un mes posterior para prueba. Incidentes de una misma secuencia operativa no se reparten entre pliegues. Se comparará contra reglas actuales y contra un clasificador que siempre predice la prevalencia.
+**Paso 1: formulación y partición.** Se fija como tiempo de predicción el instante de alerta. Se excluyen variables creadas después de la inspección, como código final de avería. Se separan periodos: meses anteriores para desarrollo y un mes posterior para prueba. Incidentes de una misma secuencia operativa no se reparten entre pliegues. Se comparará contra reglas actuales y contra un clasificador que siempre predice la prevalencia.
 
 **Paso 2: crecimiento.** En un nodo con 200 incidentes, 50 críticos, $G=2(0.25)(0.75)=0.375$. Un corte de vibración produce una hija alta con 60 casos y 36 críticos, $G_A=0.48$, y una baja con 140 casos y 14 críticos, $G_B=0.18$. La impureza posterior es $0.3(0.48)+0.7(0.18)=0.27$ y la reducción, $0.105$. Aunque la rama alta no es pura, concentra riesgo y mejora la decisión.
 
@@ -584,7 +584,7 @@ Boosting tiene mejor media, pero su ventaja sobre el bosque es pequeña y más v
 
 **Análisis de errores.** Se inspeccionan falsos negativos en eventos especiales, diferencias por zona y vehículos nuevos. Si el modelo usa congestión registrada después del tiempo de decisión, se elimina aunque eleve métricas. Si las zonas periféricas muestran peor sensibilidad por menor cobertura de sensores, se documenta y se considera abstención o inversión en datos.
 
-Una competencia controlada no busca coronar un algoritmo universal. Busca estimar qué sistema satisface mejor el contrato bajo incertidumbre y recursos reales. El árbol conserva valor como referencia interpretable incluso si no se despliega.
+Una competencia controlada no busca coronar un algoritmo universal. Busca estimar qué sistema satisface mejor la especificación bajo incertidumbre y recursos reales. El árbol conserva valor como referencia interpretable incluso si no se despliega.
 
 ## 12.4. Explicabilidad y aprendizaje distribuido
 
@@ -812,7 +812,7 @@ Una organización dispone de registros históricos de varias plantas: mediciones
 
 El equipo debe entregar un diseño, sin código de implementación, que contenga:
 
-1. Un contrato predictivo con unidad de análisis, tiempo de decisión, horizonte, acción, costo de falsos negativos y variables prohibidas por temporalidad.
+1. Una formulación predictiva con unidad de análisis, tiempo de decisión, horizonte, acción, costo de falsos negativos y variables prohibidas por temporalidad.
 2. Una división de desarrollo, validación y prueba que respete periodo, planta y posibles lotes relacionados.
 3. La derivación manual de Gini o entropía para dos cortes candidatos en un nodo proporcionado por el docente.
 4. Un árbol amplio y su estrategia conceptual de poda, incluyendo la regla de selección por validación.

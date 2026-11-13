@@ -209,7 +209,7 @@ Un diccionario robusto contiene:
 | Faltantes | Significados y códigos |
 | Versión | Cambios de definición |
 
-El diccionario es un contrato. Si el sistema cambia de metros a centímetros, no basta con modificar los datos: se actualiza la versión, se fija una fecha efectiva y se adapta la validación.
+El diccionario es una especificación. Si el sistema cambia de metros a centímetros, no basta con modificar los datos: se actualiza la versión, se fija una fecha efectiva y se adapta la validación.
 
 #### Perfilado continuo
 
@@ -248,7 +248,7 @@ La validación debe producir un informe, no solo un booleano. Debe indicar canti
 
 #### Validar antes y después
 
-Las reglas se aplican al ingreso y después de las transformaciones. Una unión puede introducir duplicados; una conversión puede producir infinitos; un filtro puede eliminar una población completa. La salida también necesita contrato.
+Las reglas se aplican al ingreso y después de las transformaciones. Una unión puede introducir duplicados; una conversión puede producir infinitos; un filtro puede eliminar una población completa. La salida también necesita una especificación.
 
 ### 3.1.7. Ejemplo práctico guiado: auditoría inicial de un dataset abierto
 
@@ -622,7 +622,7 @@ Si ambas tablas tienen varias filas por clave, aparece una relación muchos-a-mu
 
 #### Uniones temporales y espaciales
 
-No todas las relaciones usan igualdad exacta. Una medición puede vincularse con la calibración vigente en ese instante; un viaje, con la zona que contiene su coordenada; un reclamo, con el contrato activo durante su fecha.
+No todas las relaciones usan igualdad exacta. Una medición puede vincularse con la calibración vigente en ese instante; un viaje, con la zona que contiene su coordenada; un reclamo, con el acuerdo de servicio activo durante su fecha.
 
 Una unión temporal necesita intervalos de validez y una regla para superposiciones. Una unión espacial necesita sistema de coordenadas y política para puntos en límites. Aproximar por fecha o nombre sin documentar puede producir correspondencias silenciosamente erróneas.
 
@@ -644,7 +644,7 @@ $$
 
 #### Tasas y denominadores
 
-Una tasa necesita numerador y población en riesgo. “Reclamos por zona” no permite comparar zonas con distinta cantidad de usuarios. Una tasa por mil contratos puede ser más pertinente, pero depende de que contratos y reclamos correspondan al mismo periodo y cobertura.
+Una tasa necesita numerador y población en riesgo. “Reclamos por zona” no permite comparar zonas con distinta cantidad de usuarios. Una tasa por mil servicios activos puede ser más pertinente, pero depende de que servicios y reclamos correspondan al mismo periodo y cobertura.
 
 #### Ventanas temporales
 
@@ -940,7 +940,7 @@ Los parámetros de imputación, cantidad de componentes, umbrales y complejidad 
 
 #### Inferencia y entrenamiento
 
-Debe existir paridad: la misma lógica se utiliza al entrenar y al predecir. Reimplementar transformaciones en otro sistema puede introducir diferencias. Los contratos de características especifican nombre, tipo, orden, unidad y política de faltantes.
+Debe existir paridad: la misma lógica se utiliza al entrenar y al predecir. Reimplementar transformaciones en otro sistema puede introducir diferencias. Las especificaciones de características establecen nombre, tipo, orden, unidad y política de faltantes.
 
 #### Persistencia y versión
 
@@ -952,7 +952,7 @@ Los pipelines de datos necesitan pruebas igual que cualquier software, pero adem
 
 #### Pruebas de esquema
 
-Verifican columnas, tipos, rangos, categorías y nulabilidad. Detectan cambios de contrato antes de producir resultados.
+Verifican columnas, tipos, rangos, categorías y nulabilidad. Detectan cambios de especificación antes de producir resultados.
 
 #### Pruebas de unidad
 
@@ -1025,7 +1025,7 @@ La principal lección práctica es que toda modificación debe responder cuatro 
 - **Cardinalidad:** cantidad de instancias relacionadas entre claves o entidades.
 - **Completitud:** proporción de datos esperados que están presentes.
 - **Dato faltante:** valor no observado cuyo significado depende del mecanismo de ausencia.
-- **Diccionario de datos:** contrato que documenta significado, tipo, unidad, dominio y procedencia.
+- **Diccionario de datos:** especificación que documenta significado, tipo, unidad, dominio y procedencia.
 - **Fuga de información:** uso durante desarrollo de información no disponible en el uso real.
 - **Granularidad:** nivel temporal, espacial o conceptual de una observación.
 - **Imputación:** sustitución de un valor ausente por una estimación.

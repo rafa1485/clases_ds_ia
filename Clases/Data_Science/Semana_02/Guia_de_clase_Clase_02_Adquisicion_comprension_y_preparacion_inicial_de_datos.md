@@ -54,7 +54,7 @@ La sesión debe conservar una distinción central: los registros son **viajes re
 | 8-30 min | Objetos de datos, procedencia, unidad y regla de una fila | 4-7 |
 | 30-52 min | Tipos, calidad, faltantes, duplicados y claves | 8-12 |
 | 52-68 min | Integración temporal/espacial, agregación y reproducibilidad | 13-17 |
-| 68-73 min | Transición y contrato del taller | 18-19 |
+| 68-73 min | Transición y definición del taller | 18-19 |
 | 73-81 min | Pausa breve | -- |
 | 81-111 min | Adquisición, inspección, auditoría y zonas | 20-27 |
 | 111-132 min | Zona-hora, clima e integración | 28-31 |
@@ -82,7 +82,7 @@ Si no existe una copia externa autorizada, usar la ejecución previa ya visible 
 
 | Criterio | Evidencia observable | Peso sugerido |
 |---|---|---:|
-| Contrato y procedencia | Cuatro fuentes, periodo, unidad, clave, zona horaria y propósito declarados | 20 % |
+| Definición y procedencia | Cuatro fuentes, periodo, unidad, clave, zona horaria y propósito declarados | 20 % |
 | Calidad y decisiones | Faltantes, duplicados o aproximación de clave, reglas de validez, exclusiones y sensibilidad justificadas | 20 % |
 | Integración verificable | Unicidad del lado “uno”, `validate`, conservación de filas y cobertura de zonas/clima | 20 % |
 | Producto reproducible | Notebook ejecutable, tabla zona-hora con clave única, orden, metadatos y procedencia | 20 % |
@@ -124,7 +124,7 @@ Una falla crítica de cardinalidad no resuelta, una unidad ambigua o una afirmac
 
 **Correspondencia con el libro.** Capítulo 2, §§2.2-2.4; capítulo 3, §§3.1-3.3; capítulo 4, exploración descriptiva.
 
-**Propósito.** Fijar el contrato de aprendizaje de la sesión.
+**Propósito.** Fijar la definición del aprendizaje de la sesión.
 
 **Guion sugerido.** Recorrer los cinco resultados en orden: distinguir objetos, documentar representación, evaluar calidad, integrar a zona-hora y declarar pérdida y límites. Subrayar que cada resultado tendrá evidencia en el notebook.
 
@@ -150,7 +150,7 @@ Una falla crítica de cardinalidad no resuelta, una unidad ambigua o una afirmac
 
 **Conceptos y términos.** *Producto esperado*, *población*, *periodo*, *exclusión*, *momento de disponibilidad*.
 
-**Ejemplo o acción en notebook.** Leer la pregunta guía y pedir que identifiquen producto, periodo y unidad antes de ejecutar. La unidad final se completa con el contrato de la diapositiva 19.
+**Ejemplo o acción en notebook.** Leer la pregunta guía y pedir que identifiquen producto, periodo y unidad antes de ejecutar. La unidad final se completa con la definición de la diapositiva 19.
 
 **Error frecuente o límite.** Elegir columnas disponibles y después inventar una pregunta que las justifique.
 
@@ -468,9 +468,9 @@ Una falla crítica de cardinalidad no resuelta, una unidad ambigua o una afirmac
 
 **Conclusión que debe quedar.** El taller prueba preparación e integración bajo límites explícitos.
 
-**Transición sugerida.** “Definamos formalmente fuentes, unidades originales y contrato del producto”.
+**Transición sugerida.** “Definamos formalmente fuentes, unidades originales y especificación del producto”.
 
-## Diapositiva 19. Taller 1: fuentes y contrato analítico
+## Diapositiva 19. Taller 1: fuentes y definición analítica
 
 **Correspondencia con el libro.** Capítulo 2, inventario de fuentes; capítulo 3, unidad, clave e integración.
 
@@ -478,11 +478,11 @@ Una falla crítica de cardinalidad no resuelta, una unidad ambigua o una afirmac
 
 **Guion sugerido.** Leer TLC viajes, lookup, shapefile y NOAA. Fijar una fila igual a zona de origen-hora local y clave `PULocationID, hora`.
 
-**Conceptos y términos.** *Contrato analítico*, *unidad original*, *clave compuesta*, *estación-observación*.
+**Conceptos y términos.** *Definición analítica*, *unidad original*, *clave compuesta*, *estación-observación*.
 
 **Descripción visual relevante.** La tabla organiza fuente, archivo/tabla y unidad original; leer por filas y luego contrastar todas con la unidad final inferior. El cambio de unidad ocurre por transformación, no porque los archivos ya compartan granularidad.
 
-**Ejemplo o acción en notebook.** Revisar “Ficha de fuentes” y completar metadatos. En el código, `pickup_hora` corresponde a `hora` y `pickups_zona_hora` materializa el contrato.
+**Ejemplo o acción en notebook.** Revisar “Ficha de fuentes” y completar metadatos. En el código, `pickup_hora` corresponde a `hora` y `pickups_zona_hora` materializa la especificación.
 
 **Error frecuente o límite.** Confundir zona-ID del lookup con una observación de viaje o clima horario con clima zonal.
 
@@ -570,7 +570,7 @@ Una falla crítica de cardinalidad no resuelta, una unidad ambigua o una afirmac
 
 **Conclusión que debe quedar.** Un control útil hace visible su definición y no exagera lo que detecta.
 
-**Transición sugerida.** “Pasemos de diagnosticar a decidir qué registros cumplen el contrato operativo”.
+**Transición sugerida.** “Pasemos de diagnosticar a decidir qué registros cumplen el criterio operativo”.
 
 ## Diapositiva 24. Taller 6: validez y filtros explícitos
 
@@ -608,7 +608,7 @@ Una falla crítica de cardinalidad no resuelta, una unidad ambigua o una afirmac
 
 **Comprobación.** Si la longitud cambia, detener la clase y diagnosticar cardinalidad; no continuar hacia gráficos.
 
-**Conclusión que debe quedar.** La misma dimensión puede cumplir roles distintos y cada unión necesita contrato.
+**Conclusión que debe quedar.** La misma dimensión puede cumplir roles distintos y cada unión necesita una especificación.
 
 **Transición sugerida.** “Conservar filas no implica que todas hayan encontrado nombre de zona; midamos cobertura”.
 
@@ -814,7 +814,7 @@ Una falla crítica de cardinalidad no resuelta, una unidad ambigua o una afirmac
 
 **Comprobación.** Recargar el Parquet desde su ubicación externa y comprobar esquema, clave y rango temporal contra los parámetros, sin exigir un conteo fijo.
 
-**Conclusión que debe quedar.** Un archivo solo es producto reproducible si viaja con contrato, controles y procedencia.
+**Conclusión que debe quedar.** Un archivo solo es producto reproducible si viaja con especificación, controles y procedencia.
 
 **Transición sugerida.** “Reunamos ahora los artefactos que demostrarán el aprendizaje”.
 
@@ -868,7 +868,7 @@ Una falla crítica de cardinalidad no resuelta, una unidad ambigua o una afirmac
 
 **Guion sugerido.** Recuperar las seis ideas en el orden de la lámina: propósito/producto; fuente/unidad/fila; tipos/faltantes/duplicados; claves/cardinalidad/cobertura; tiempo/espacio/agregación; pérdidas/límites/cadena reproducible. Conectar cada una con un objeto del notebook.
 
-**Conceptos y términos.** No introducir vocabulario nuevo; integrar contrato, procedencia, calidad apta, cardinalidad, granularidad y límites.
+**Conceptos y términos.** No introducir vocabulario nuevo; integrar definición, procedencia, calidad apta, cardinalidad, granularidad y límites.
 
 **Ejemplo o acción en notebook.** Cerrar con la pregunta final: qué dato permitiría distinguir mejor demanda, oferta y viajes realizados. Aceptar propuestas justificadas por unidad, disponibilidad y procedencia.
 

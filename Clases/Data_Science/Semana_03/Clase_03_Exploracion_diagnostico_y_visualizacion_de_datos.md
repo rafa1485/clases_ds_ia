@@ -53,7 +53,7 @@ Explorar también audita las decisiones previas; no autoriza redefinirlas hasta 
 
 | Bloque conceptual | Diapositivas |
 |---|---:|
-| Contrato y fundamentos | 1-10 |
+| Definición y fundamentos | 1-10 |
 | Descripción univariada | 11-19 |
 | Codificación visual | 20-25 |
 | Relaciones | 26-34 |
@@ -309,7 +309,7 @@ Una zona-hora extrema puede corresponder a aeropuerto, evento, error de agregaci
 
 | Componente | Control mínimo |
 |---|---|
-| Contrato | población, unidad, periodo, estimando |
+| Definición | población, unidad, periodo, estimando |
 | Cobertura | válidos, faltantes, ceros, filas ausentes |
 | Distribución | frecuencias y forma |
 | Posición | centro y cuantiles |
@@ -613,7 +613,7 @@ Cuantas más variables, filtros y cortes se prueben, mayor es la posibilidad de 
 
 | Campo | Contenido |
 |---|---|
-| Contrato | pregunta, población, unidad y periodo |
+| Definición | pregunta, población, unidad y periodo |
 | Observación | patrón y magnitud obtenidos de evidencia |
 | Soporte | tabla o figura trazable |
 | Cobertura | válidos, faltantes, exclusiones y denominador |
@@ -626,9 +626,9 @@ Usar “se observa” o “se asocia”, no “produce” o “causa”.
 
 ---
 
-# Contrato de cinco hallazgos y continuidad
+# Definición de cinco hallazgos y continuidad
 
-El **futuro notebook**, aún no creado y **no incluido en esta entrega**, deberá materializar un contrato reproducible para cinco hallazgos complementarios:
+El **futuro notebook**, aún no creado y **no incluido en esta entrega**, deberá materializar una estructura reproducible para cinco hallazgos complementarios:
 
 | Hallazgo requerido | Pregunta que deberá resolver |
 |---|---|
@@ -638,7 +638,7 @@ El **futuro notebook**, aún no creado y **no incluido en esta entrega**, deber�
 | 4. Patrón temporal | ¿qué orden, ciclos, huecos o cambios se observan, sin pronosticar? |
 | 5. Patrón espacial o multivariado | ¿qué heterogeneidad aparece bajo medida y denominador explícitos? |
 
-Cada hallazgo incluirá contrato, evidencia, cobertura, ceros/faltantes, extremos, sensibilidad, límite y próximo paso. No hay resultados predeterminados que deban encontrarse.
+Cada hallazgo incluirá definición, evidencia, cobertura, ceros/faltantes, extremos, sensibilidad, límite y próximo paso. No hay resultados predeterminados que deban encontrarse.
 
 ---
 
