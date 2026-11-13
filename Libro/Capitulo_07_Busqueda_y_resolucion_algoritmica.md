@@ -358,6 +358,87 @@ A-ESTRELLA(problema, h):
     devolver fracaso
 ```
 
+#### Lectura tipada del pseudocódigo
+
+El pseudocódigo combina conceptos del problema con estructuras de datos de una
+implementación. Distinguirlos evita interpretar cada nombre como si fuera un
+estado o una variable simple.
+
+| Término | Qué representa | Tipo conceptual |
+|---|---|---|
+| `problema` | Definición del espacio de estados, estado inicial, objetivo, sucesores y costos | registro u objeto del problema |
+| `h` | Función que estima el costo restante desde un estado hasta un objetivo | función `estado -> número real` |
+| `frontera` | Nodos pendientes de expansión, ordenados por prioridad | cola de prioridad mínima |
+| `mejor_g` | Menor costo acumulado conocido para cada estado | diccionario `estado -> número real` |
+| `inicial` | Estado desde el que comienza la búsqueda | estado |
+| `raíz` | Nodo de búsqueda creado para `inicial` | registro u objeto nodo |
+| `nodo` | Camino parcial almacenado junto con su estado y costos | registro u objeto nodo |
+| `f` | Prioridad de A*, calculada como `g+h` | número real |
+
+Un **estado** describe una configuración del problema, como una ciudad o una
+posición. Un **nodo de búsqueda** es un registro creado por el algoritmo: puede
+contener ese estado, un puntero a su padre, la acción que lo produjo, `g`, `h`
+y `f`. Dos nodos pueden referirse al mismo estado y tener distintos padres o
+valores de `g` porque fueron alcanzados por caminos diferentes.
+
+En la inicialización, `mejor_g[inicial] <- 0` significa que el costo conocido
+desde el estado inicial hasta sí mismo es cero. La raíz se inserta con
+`f=h(inicial)` porque su `g` vale cero y, por tanto, `f=g+h=0+h(inicial)`.
+
+`EXTRAER-MINIMO(frontera)` retira la entrada cuya prioridad `f` es menor. Si
+varias entradas empatan, debe existir una regla estable y documentada, como el
+orden de inserción. Extraer no significa todavía expandir: primero se verifica
+si la entrada sigue representando el mejor camino conocido.
+
+Una **entrada obsoleta** es un nodo cuyo costo acumulado es peor que el que
+figura actualmente en `mejor_g`:
+
+```text
+nodo.g > mejor_g[nodo.estado]
+```
+
+Esto ocurre cuando se conserva una entrada vieja en la cola y posteriormente
+se encuentra un camino más barato. Una implementación puede actualizar la cola
+en el lugar o insertar una nueva entrada y descartar la vieja al extraerla.
+
+Un **sucesor** se representa conceptualmente como:
+
+```text
+(acción, estado_siguiente, costo_paso)
+```
+
+La **acción** es la operación disponible desde el estado actual; el estado
+siguiente es el resultado de aplicarla; y `costo_paso` es el costo numérico de
+esa transición. En un grafo de rutas, `(ir_a_A, A, 2)` expresa que se ejecuta
+la acción de ir a `A`, se llega al estado `A` y la transición cuesta 2.
+
+`nodo.g` es el costo acumulado desde el estado inicial hasta el estado del
+nodo. `costo_paso` es el costo de la transición que lleva desde ese nodo hasta
+su sucesor. Ambos deben ser números no negativos y usar la misma unidad.
+Por eso:
+
+```text
+nuevo_g <- nodo.g + costo_paso
+```
+
+calcula el costo acumulado del nuevo camino. Si `nodo.g=4` y `costo_paso=3`,
+entonces `nuevo_g=7`.
+
+La condición `nuevo_g mejora mejor_g[estado sucesor]` equivale a comprobar que
+el sucesor todavía no tiene un costo registrado o que `nuevo_g` es menor que
+el anterior. Solo en ese caso se actualiza `mejor_g`, se guarda el padre y se
+inserta una nueva entrada en la frontera con:
+
+```text
+f = nuevo_g + h(estado_sucesor)
+```
+
+La prueba de objetivo se realiza al extraer el nodo, no simplemente al
+generarlo. `devolver su camino` significa seguir los punteros `padre` desde el
+nodo objetivo hasta la raíz e invertir la secuencia. `devolver fracaso` es un
+resultado explícito que indica que la frontera se agotó sin encontrar un
+objetivo alcanzable.
+
 Con $h=0$, A* es UCS. A medida que una heurística informativa aumenta sin sobreestimar, A* suele expandir menos estados. Sin embargo, guarda una frontera potencialmente exponencial; su limitación habitual es la memoria. Los empates entre valores $f$ pueden resolverse prefiriendo mayor $g$ o menor $h$ para avanzar más profundo entre candidatos equivalentes, pero la regla debe declararse.
 
 A* no significa automáticamente «óptimo». La garantía depende de costos no negativos, prueba de objetivo al extraer, tratamiento correcto de mejores caminos y propiedades de $h$. Una implementación que mezcla unidades o descarta reaperturas necesarias deja de corresponder al algoritmo analizado.

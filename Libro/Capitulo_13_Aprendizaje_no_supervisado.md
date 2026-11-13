@@ -552,7 +552,7 @@ Las cuatro proporciones de franja son composicionales y suman uno; el equipo deb
 - la interpretación no confunde separación algorítmica con categorías reales;
 - nombres, mapas y conclusiones describen exclusivamente perfiles operativos de pickups reportados.
 
-**Restricción interpretativa.** Los grupos son perfiles algorítmicos de viajes de taxi amarillo observados, no categorías socioeconómicas de barrios, residentes, pasajeros o conductores. No se permiten inferencias sobre ingreso, vulnerabilidad, necesidad social, seguridad, calidad urbana ni composición demográfica. `Borough` y `Zone` localizan y describen cobertura; no explican causalmente los grupos. Cualquier extensión contextual requiere una fuente, contrato y pregunta nuevos.
+**Restricción interpretativa.** Los grupos son perfiles algorítmicos de viajes de taxi amarillo observados, no categorías socioeconómicas de barrios, residentes, pasajeros o conductores. No se permiten inferencias sobre ingreso, vulnerabilidad, necesidad social, seguridad, calidad urbana ni composición demográfica. `Borough` y `Zone` localizan y describen cobertura; no explican causalmente los grupos. Cualquier extensión contextual requiere una fuente, una especificación y una pregunta nuevas.
 
 **Aporte al laboratorio:** define perfiles de zonas que podrán utilizarse como insumo en el pronóstico y en una regla didáctica de prioridad. No constituye una optimización de flota porque los datos no observan oferta disponible ni ubicación de vehículos libres.
 

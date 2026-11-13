@@ -410,7 +410,7 @@ Los números son didácticos: no bastan las medias. Se inspeccionan intervalos, 
 
 **Prueba de estabilidad operativa.** Se repite el análisis ocultando, por turno, familias de sensores y máquinas completas. Si el modelo de 19 variables pierde casi toda capacidad al faltar vibración, esa dependencia se documenta y se diseña una ruta degradada; no se oculta bajo el promedio. Se examina además si «inspección extraordinaria solicitada» anticipa la etiqueta porque activa el registro posterior de averías. Se la excluye: a la hora de predicción representa una sospecha de especialistas que no estará siempre disponible y mezcla el modelo con el proceso de etiquetado.
 
-**Elección final.** Elastic Net queda dentro de un error estándar del mejor resultado, conserva familias técnicamente plausibles y presenta mayor estabilidad; se elige sobre la eliminación recursiva. Antes de cerrar, se reajusta el pipeline con desarrollo completo y se evalúa una sola vez en el período reservado. El informe entrega dos configuraciones: una normal con 19 variables y otra degradada sin el acelerómetro principal. Esta decisión evidencia que seleccionar atributos no termina en un ranking: termina en un contrato de medición, un régimen de operación y una estimación honesta de lo que se pierde cuando una fuente deja de estar disponible.
+**Elección final.** Elastic Net queda dentro de un error estándar del mejor resultado, conserva familias técnicamente plausibles y presenta mayor estabilidad; se elige sobre la eliminación recursiva. Antes de cerrar, se reajusta el pipeline con desarrollo completo y se evalúa una sola vez en el período reservado. El informe entrega dos configuraciones: una normal con 19 variables y otra degradada sin el acelerómetro principal. Esta decisión evidencia que seleccionar atributos no termina en un ranking: termina en una especificación de medición, un régimen de operación y una estimación honesta de lo que se pierde cuando una fuente deja de estar disponible.
 
 ## 10.3. Reducción de dimensionalidad
 
@@ -562,7 +562,7 @@ Un protocolo de lectura separa observación y explicación. Primero se describen
 
 ## 10.4. Pipelines de representación y modelado
 
-Un pipeline define una función compuesta que va desde el esquema de entrada hasta la predicción. Su propósito no es solo comodidad: establece qué aprende cada etapa, impide aplicar transformaciones inconsistentes y permite evaluar el procedimiento real. Un pipeline correcto conserva linaje, orden, parámetros y contrato de inferencia.
+Un pipeline define una función compuesta que va desde el esquema de entrada hasta la predicción. Su propósito no es solo comodidad: establece qué aprende cada etapa, impide aplicar transformaciones inconsistentes y permite evaluar el procedimiento real. Un pipeline correcto conserva linaje, orden, parámetros y especificación de inferencia.
 
 ### 10.4.1. Transformaciones encadenadas
 
@@ -580,7 +580,7 @@ Cada etapa implementa dos operaciones conceptuales: **ajustar**, que estima par�
 
 Un pipeline también debe preservar nombres y correspondencia entre columnas. Después de una codificación indicadora o una proyección, el número y significado cambian. Registrar el mapa permite auditar importancias, detectar columnas inesperadas y reproducir una predicción.
 
-El pipeline se prueba como composición, no solo etapa por etapa. Una mediana válida seguida de un logaritmo puede fallar si la imputación produce cero; agrupar niveles antes de dividir por entidad puede convertir identificadores raros en una señal compartida; una selección por nombre puede tomar columnas equivocadas después de reordenarlas. Las pruebas de contrato incluyen una fila nominal, faltantes permitidos, categorías nuevas, extremos físicos y un lote con orden distinto. Para cada caso se verifica dimensión, finitud, nombres y resultado esperado. Esta perspectiva detecta fallos en las interfaces, donde suelen aparecer errores aunque cada transformación aislada parezca correcta.
+El pipeline se prueba como composición, no solo etapa por etapa. Una mediana válida seguida de un logaritmo puede fallar si la imputación produce cero; agrupar niveles antes de dividir por entidad puede convertir identificadores raros en una señal compartida; una selección por nombre puede tomar columnas equivocadas después de reordenarlas. Las pruebas de especificación incluyen una fila nominal, faltantes permitidos, categorías nuevas, extremos físicos y un lote con orden distinto. Para cada caso se verifica dimensión, finitud, nombres y resultado esperado. Esta perspectiva detecta fallos en las interfaces, donde suelen aparecer errores aunque cada transformación aislada parezca correcta.
 
 ### 10.4.2. Columnas numéricas, categóricas y textuales
 
@@ -608,7 +608,7 @@ Esta unidad permite comparar preguntas completas: «imputación robusta + indica
 
 Las transformaciones supervisadas requieren atención adicional. Un codificador por objetivo o selector usa $Y$; para generar entradas del propio entrenamiento sin sobreajuste puede necesitar codificación fuera de pliegue interna. En validación recibe únicamente el mapeo ajustado con entrenamiento. Es posible que haya niveles sin estadísticas, resueltos mediante suavizado y regla de desconocidos.
 
-El pipeline final se reajusta sobre todos los datos de desarrollo después de fijar la configuración. La prueba se transforma una vez y no participa de decisiones. En producción, una observación atraviesa exactamente las mismas etapas con parámetros congelados. Si una etapa necesita información de lote —por ejemplo, normalizar respecto de otros casos recibidos juntos—, el contrato debe especificarlo porque una predicción individual podría no ser equivalente.
+El pipeline final se reajusta sobre todos los datos de desarrollo después de fijar la configuración. La prueba se transforma una vez y no participa de decisiones. En producción, una observación atraviesa exactamente las mismas etapas con parámetros congelados. Si una etapa necesita información de lote —por ejemplo, normalizar respecto de otros casos recibidos juntos—, la especificación debe indicarlo porque una predicción individual podría no ser equivalente.
 
 Existe una distinción útil entre parámetros de representación y estado operacional. Las medias, cargas y vocabulario se congelan con el ajuste; los rezagos de una entidad se consultan en un almacén que evoluciona con el tiempo. Ese estado no puede reconstruirse usando eventos posteriores ni actualizarse dos veces por reintentos. Una simulación histórica debe reproducir el orden «leer estado, predecir, incorporar evento cuando esté disponible». De lo contrario, un pipeline formalmente correcto puede obtener ventaja del futuro a través de su infraestructura de características.
 
@@ -674,7 +674,7 @@ La compatibilidad se valida en ambos sentidos. Un productor nuevo no debe enviar
 
 **Objetivo.** Predecir si una incidencia de transporte excederá 30 minutos, usando al momento de registro: distancia estimada, temperatura, tipo de vehículo, zona, hora, descripción breve y antecedentes del corredor. La etiqueta llega al cierre. Los datos se dividen por semana y corredor para evitar compartir eventos casi duplicados.
 
-**Contrato de entrada.** Distancia está en kilómetros y temperatura en °C; tipo y zona son nominales; fecha incluye zona horaria; texto puede faltar. No se admite duración final, código de resolución ni notas agregadas después del cierre.
+**Especificación de entrada.** Distancia está en kilómetros y temperatura en °C; tipo y zona son nominales; fecha incluye zona horaria; texto puede faltar. No se admite duración final, código de resolución ni notas agregadas después del cierre.
 
 **Ramas de representación.** La rama numérica imputa con estadísticas del entrenamiento, agrega indicadores de faltante y escala. La categórica agrupa niveles infrecuentes según umbral validado, codifica indicadores y reserva desconocido. La temporal crea ciclo horario, día de semana y feriado disponible. La textual aprende su vocabulario únicamente con entrenamiento y produce una matriz dispersa. Los antecedentes del corredor usan ventanas cerradas antes del registro.
 
@@ -684,7 +684,7 @@ Las salidas se concatenan. Un filtro elimina términos extremadamente raros y un
 
 **Auditoría de fuga.** Se descubre que «cantidad histórica de incidentes» fue calculada al final de cada semana, incluyendo días posteriores. Se reemplaza por una ventana causal por evento. La métrica baja de 0,84 a 0,76: la caída no es un empeoramiento del sistema, sino la eliminación de una ventaja imposible en producción.
 
-**Persistencia y operación.** Se guarda el pipeline completo con esquema y umbral. Casos de referencia prueban equivalencia. Se monitorizan niveles nuevos, proporción de texto vacío, deriva de puntuación, latencia y sensibilidad por zona. Una nueva categoría no desencadena reajuste silencioso; se procesa según el contrato y se registra para revisión.
+**Persistencia y operación.** Se guarda el pipeline completo con esquema y umbral. Casos de referencia prueban equivalencia. Se monitorizan niveles nuevos, proporción de texto vacío, deriva de puntuación, latencia y sensibilidad por zona. Una nueva categoría no desencadena reajuste silencioso; se procesa según la especificación y se registra para revisión.
 
 **Fallo y degradación.** Si no llega el texto, el sistema puede usar una configuración validada sin esa rama en lugar de imputar silenciosamente miles de ceros y fingir equivalencia. Si faltan antecedentes del corredor, devuelve una predicción con indicador de baja cobertura o se abstiene según el riesgo. Las dos rutas se evalúan antes del despliegue. Además, una prueba retrospectiva reproduce eventos en su orden de llegada para comprobar que una corrección tardía no reescribe características ya utilizadas. El registro conserva versión, valores derivados y motivo de cualquier abstención.
 

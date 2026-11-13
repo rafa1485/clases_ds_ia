@@ -260,7 +260,7 @@ Meta: construir una tabla analítica auditada, no un modelo predictivo.
 
 ---
 
-# Taller 1: fuentes y contrato analítico
+# Taller 1: fuentes y definición analítica
 
 **Notebook:** `Taller_Clase_02_Movilidad.ipynb`
 
